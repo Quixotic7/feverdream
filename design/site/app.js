@@ -616,8 +616,128 @@
   $('copyshot').append(oled('hint-copy'));
 
   /* ------------------------------------------------------------ decisions */
-  $('open').append(...FD.open.map((o) => el('div', { class: 'card' }, el('span', { class: 'n' }, String(o.n)), el('h3', { html: md(o.title) }), el('p', { html: md(o.text) }))));
-  $('decided').append(...FD.decided.map((d) => el('div', { class: 'card' }, el('span', { class: 'lab' }, d.date), el('h3', { html: md(d.title) }), el('p', { html: md(d.text) }))));
+  /* Each item can be approved, rejected or marked for discussion, with an answer and notes. Inside a claude.ai
+     artifact the review is kept in the artifact's own store, where Claude can read it; anywhere else (GitHub Pages,
+     a local copy) it is kept in this browser, and "Copy my review" turns it into text to paste. */
+  (function review() {
+    const LS = 'fd-review-v1';
+    const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+    const items = [
+      ...FD.open.map((o) => ({ key: 'open-' + o.n, kind: 'open', lead: String(o.n), title: o.title, text: o.text })),
+      ...FD.decided.map((d) => ({ key: 'decided-' + slug(d.title), kind: 'decided', lead: d.date, title: d.title, text: d.text }))];
+    const WORD = { approve: 'Approved', reject: 'Rejected', discuss: 'To discuss' };
+    let recs = {}, db = null, filter = 'all';
+    const ui = {}, dirty = new Set(), timers = {}, chain = {};
+    const note = (t) => { $('rv-note').textContent = t; };
+    const blank = (r) => !r || (!r.status && !(r.answer || '').trim() && !(r.notes || '').trim());
+
+    function card(it) {
+      const st = el('span', { class: 'chipst' });
+      const btns = {};
+      const row = el('div', { class: 'row' }, ['approve', 'reject', 'discuss'].map((s) => {
+        btns[s] = el('button', { class: 'btn b-' + s, type: 'button', 'aria-pressed': 'false', onclick: () => { const r = get(it.key); r.status = r.status === s ? '' : s; commit(it, 0); } },
+          s === 'approve' ? 'Approve' : s === 'reject' ? 'Reject' : 'Discuss');
+        return btns[s];
+      }));
+      const ans = el('textarea', { id: 'rv-a-' + it.key, rows: 2, placeholder: it.kind === 'open' ? 'Your decision, in your words' : 'Anything to change about this?' });
+      const nts = el('textarea', { id: 'rv-n-' + it.key, rows: 2, placeholder: 'Notes, questions, things to try on the unit' });
+      const saved = el('span', { class: 'saved', role: 'status' });
+      ans.addEventListener('input', () => { get(it.key).answer = ans.value; commit(it, 800); });
+      nts.addEventListener('input', () => { get(it.key).notes = nts.value; commit(it, 800); });
+      [ans, nts].forEach((t) => t.addEventListener('blur', () => { if (timers[it.key]) { clearTimeout(timers[it.key]); timers[it.key] = null; write(it); } }));
+      const root = el('div', { class: 'card' },
+        el('div', { class: 'top3' }, el('span', { class: it.kind === 'open' ? 'n' : 'lab' }, it.lead), st),
+        el('h3', { html: md(it.title) }), el('p', { html: md(it.text) }),
+        el('div', { class: 'rv' }, row, el('label', { for: ans.id }, 'Your answer'), ans, el('label', { for: nts.id }, 'Notes'), nts, saved));
+      ui[it.key] = { root, st, btns, ans, nts, saved, it };
+      return root;
+    }
+    function get(key) { if (!recs[key]) recs[key] = { status: '', answer: '', notes: '' }; return recs[key]; }
+    function show(key) {
+      const u = ui[key], r = recs[key] || {};
+      if (!u) return;
+      u.root.className = 'card' + (r.status ? ' ' + r.status : '');
+      u.st.textContent = WORD[r.status] || (u.it.kind === 'open' ? 'Unanswered' : 'Decided');
+      for (const s in u.btns) u.btns[s].setAttribute('aria-pressed', r.status === s ? 'true' : 'false');
+      if (document.activeElement !== u.ans) u.ans.value = r.answer || '';
+      if (document.activeElement !== u.nts) u.nts.value = r.notes || '';
+      const hide = filter === 'todo' ? !blank(r) : filter === 'discuss' ? r.status !== 'discuss' : filter === 'answered' ? blank(r) : false;
+      u.root.hidden = hide;
+    }
+    function showAll() {
+      items.forEach((it) => show(it.key));
+      const c = { approve: 0, reject: 0, discuss: 0 };
+      let open = 0;
+      items.forEach((it) => { const r = recs[it.key]; if (r && r.status) c[r.status]++; if (it.kind === 'open' && blank(r)) open++; });
+      $('rv-count').textContent = `${c.approve} approved · ${c.reject} rejected · ${c.discuss} to discuss · ${open} of ${FD.open.length} open items unanswered`;
+    }
+    function commit(it, wait) {
+      dirty.add(it.key);
+      showAll();
+      ui[it.key].saved.textContent = 'Saving…';
+      clearTimeout(timers[it.key]);
+      if (wait) timers[it.key] = setTimeout(() => { timers[it.key] = null; write(it); }, wait); else write(it);
+    }
+    function write(it) {
+      const r = get(it.key), u = ui[it.key];
+      const body = { status: r.status || '', answer: r.answer || '', notes: r.notes || '', title: it.title, kind: it.kind, updated: new Date().toISOString() };
+      const done = () => { dirty.delete(it.key); u.saved.textContent = blank(body) ? '' : 'Saved'; };
+      if (!db) {
+        try { const all = {}; items.forEach((x) => { if (!blank(recs[x.key])) all[x.key] = recs[x.key]; }); localStorage.setItem(LS, JSON.stringify(all)); done(); } catch (e) { u.saved.textContent = 'Not saved: this browser blocks storage. Use Copy my review.'; }
+        return;
+      }
+      const ref = db.doc('reviews/' + it.key);
+      chain[it.key] = (chain[it.key] || Promise.resolve()).then(() => (blank(body) ? ref.delete() : ref.set(body))).then(done)
+        .catch((e) => { u.saved.textContent = e && e.code === 'invalid_argument' ? 'Not saved: you can read this review but not change it.' : 'Not saved yet. Edit again to retry.'; });
+    }
+    function useLocal(why) {
+      db = null;
+      try { recs = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { recs = {}; }
+      note((why ? why + ' ' : '') + 'Your review is kept in this browser only. Use Copy my review to hand it to Claude.');
+      showAll();
+    }
+
+    $('open').append(...items.filter((i) => i.kind === 'open').map(card));
+    $('decided').append(...items.filter((i) => i.kind === 'decided').map(card));
+    [['all', 'All'], ['todo', 'Unanswered'], ['discuss', 'To discuss'], ['answered', 'Answered']].forEach(([k, t]) =>
+      $('rv-filter').append(el('button', { class: 'btn', type: 'button', 'aria-pressed': k === 'all' ? 'true' : 'false', onclick: (e) => { filter = k; $('rv-filter').querySelectorAll('.btn').forEach((b) => b.setAttribute('aria-pressed', b === e.currentTarget ? 'true' : 'false')); showAll(); } }, t)));
+    $('rv-copy').onclick = () => {
+      const lines = ['Feverdream design review (' + FD.draft + ')', ''];
+      items.forEach((it) => {
+        const r = recs[it.key];
+        if (blank(r)) return;
+        lines.push(`${it.kind === 'open' ? 'OPEN ' + it.lead + '.' : 'DECIDED:'} ${it.title} — ${(WORD[r.status] || 'no verdict').toUpperCase()}`);
+        if ((r.answer || '').trim()) lines.push('  Answer: ' + r.answer.trim());
+        if ((r.notes || '').trim()) lines.push('  Notes: ' + r.notes.trim());
+        lines.push('');
+      });
+      const text = lines.length > 2 ? lines.join('\n') : 'Nothing reviewed yet.';
+      const out = $('rv-out');
+      const fallback = () => { out.hidden = false; out.value = text; out.focus(); out.select(); };
+      const b = $('rv-copy');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => { b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy my review'; }, 1500); }, fallback); else fallback();
+    };
+
+    showAll();
+    if (window.claude && typeof window.claude.use === 'function') {
+      note('Loading your saved review…');
+      window.claude.use('db').then((d) => {
+        if (!d) { useLocal(); return; }
+        db = d;
+        let got = false;
+        const slow = setTimeout(() => { if (!got) note("Your saved review can't be reached yet. What you enter now is still sent when it answers."); }, 10000);
+        d.collection('reviews').onSnapshot((snap) => {
+          got = true; clearTimeout(slow);
+          const next = {};
+          snap.docs.forEach((x) => { const v = x.data() || {}; next[x.id] = { status: String(v.status || ''), answer: String(v.answer || ''), notes: String(v.notes || '') }; });
+          dirty.forEach((k) => { if (recs[k]) next[k] = recs[k]; });
+          recs = next;
+          note('Your review is saved with this artifact, where Claude can read it. Tell Claude when you are done.');
+          showAll();
+        }, () => { clearTimeout(slow); useLocal('The saved review could not be opened.'); });
+      }, () => useLocal());
+    } else useLocal();
+  })();
 
   /* ------------------------------------------------------------ the documents */
   function renderSpec(which) {

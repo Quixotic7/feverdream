@@ -8,17 +8,17 @@
    always drawn as the dark hardware they are, on a page the colour of brushed aluminium (light) or a studio at night (dark). */
 :root{
   --bg:#e8ebee; --panel:#f6f7f8; --ink:#14181d; --mute:#56606b; --line:#c8ced5; --chip:#dce1e6;
-  --accent:#d1440c; --accent-ink:#ffffff; --teal:#0a8672;
+  --accent:#d1440c; --accent-ink:#ffffff; --teal:#0a8672; --bad:#b3261e; --ask:#8a6100;
   --dev:#1b1d20; --dev-edge:#383c42; --dev-ctl:#2a2d32; --dev-ink:#a3aab2; --oled:#06080a; --oled-on:#eaf6ff;
   --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#0e1115; --panel:#161a20; --ink:#e7eaee; --mute:#8f99a5; --line:#2a313a; --chip:#222932;
-  --accent:#ff7a2e; --accent-ink:#14181d; --teal:#2fd9b9; color-scheme:dark } }
+  --accent:#ff7a2e; --accent-ink:#14181d; --teal:#2fd9b9; --bad:#ff6b5e; --ask:#ffc04d; color-scheme:dark } }
 :root[data-theme="dark"]{
   --bg:#0e1115; --panel:#161a20; --ink:#e7eaee; --mute:#8f99a5; --line:#2a313a; --chip:#222932;
-  --accent:#ff7a2e; --accent-ink:#14181d; --teal:#2fd9b9; color-scheme:dark }
+  --accent:#ff7a2e; --accent-ink:#14181d; --teal:#2fd9b9; --bad:#ff6b5e; --ask:#ffc04d; color-scheme:dark }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -192,6 +192,18 @@ ol.rules span{color:var(--mute);grid-column:2}
 .card{border:1px solid var(--line);border-radius:5px;padding:14px;background:var(--panel);display:flex;flex-direction:column;gap:6px;font-size:14px;min-width:0}
 .card .n{font:800 18px var(--display);color:var(--accent)}
 .card p{color:var(--mute);max-width:none}
+.card.approve{border-color:var(--teal)} .card.reject{border-color:var(--bad)} .card.discuss{border-color:var(--ask)}
+.card .top3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.chipst{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 6px;border-radius:3px;background:var(--chip);color:var(--mute);white-space:nowrap}
+.approve .chipst{background:var(--teal);color:var(--bg)} .reject .chipst{background:var(--bad);color:var(--bg)} .discuss .chipst{background:var(--ask);color:var(--bg)}
+.rv{display:flex;flex-direction:column;gap:8px;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.rv .btn{padding:5px 10px;font-size:13px}
+.rv .btn[aria-pressed="true"].b-approve{background:var(--teal);border-color:var(--teal);color:var(--bg)}
+.rv .btn[aria-pressed="true"].b-reject{background:var(--bad);border-color:var(--bad);color:var(--bg)}
+.rv .btn[aria-pressed="true"].b-discuss{background:var(--ask);border-color:var(--ask);color:var(--bg)}
+.rv label{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.rv-text,.rv textarea{width:100%;font:14px/1.45 var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 9px;resize:vertical;min-height:38px}
+.rv .saved{font:500 11px var(--mono);color:var(--mute);min-height:1.2em}
 .specgrid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:start}
 @media (max-width:860px){.specgrid{grid-template-columns:minmax(0,1fr)} .toc{position:static!important;max-height:200px!important}}
 .toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 68px);max-height:calc(100vh - 100px);overflow:auto;display:flex;flex-direction:column;gap:2px;font-size:13px}
@@ -545,7 +557,14 @@ ol.rules span{color:var(--mute);grid-column:2}
 <section class="view" id="v-decisions" hidden>
   <div class="head">
     <h1>Decisions</h1>
-    <p>What is settled, and what still waits for an answer. Each open item has a recommendation in the spec.</p>
+    <p>What is settled, and what still waits for an answer. Approve, reject or mark any item for discussion, write your answer, and leave notes. Each open item has a recommendation in the spec.</p>
+    <p class="mute" id="rv-note" role="status" style="font-size:13.5px"></p>
+    <div class="row">
+      <span class="mono" id="rv-count" style="font-size:13px"></span>
+      <span class="row" id="rv-filter" role="group" aria-label="Show"></span>
+      <button class="btn" id="rv-copy" type="button">Copy my review</button>
+    </div>
+    <textarea id="rv-out" class="rv-text" rows="8" readonly hidden aria-label="Your review as text"></textarea>
   </div>
   <div class="sec"><h2>Open</h2><div class="cards" id="open"></div></div>
   <div class="sec"><h2>Decided</h2><div class="cards" id="decided"></div></div>
