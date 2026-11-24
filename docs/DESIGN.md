@@ -1,6 +1,6 @@
 # Feverdream: UI/UX design
 
-Draft 16, 24 November 2026. Status: proposal for review. Nothing here is built yet.
+Draft 17, 24 November 2026. Status: proposal for review. Nothing here is built yet.
 
 Feverdream is a standalone groovebox for Ableton Move. It runs in place of Move's own software, as EvilGenius and
 RemoteFM1 do. This document describes how it is played: what every control does, what the screen and LEDs say, and how
@@ -342,7 +342,6 @@ does the same with two banks: **A** is tracks 1-4, **B** is tracks 5-8.
 | Mute + track button | mute | [M] |
 | Shift + Mute + track button | solo | [M] |
 | **Shift + track button** | select the same row in the other bank, and switch the buttons to that bank | [New] |
-| Track button held + Step 1-8 | select that track directly; while the button is held the eight steps light in the eight track colours | [New; RemoteFM1 and Melodee both pick tracks this way] |
 | Track button held + wheel | pan | [M+] |
 | Track button held + encoder 1-4 | Send A, Send B, and two more mix values | [M+] |
 | Copy + track button, then a track button | copy the whole track | [M+, from 18.2] |
@@ -351,6 +350,7 @@ does the same with two banks: **A** is tracks 1-4, **B** is tracks 5-8.
 The track's number stands in a box at the left of the screen's one large line, and the track buttons' colours give
 the bank away at a glance, warm for 1-4 and cool for 5-8, so the bank is never in doubt. While Shift is held the
 track buttons show the other bank's colours, so the result of Shift + track is visible before it is pressed.
+A track is picked in one way only: its button, in its bank. The steps never pick tracks in Note Mode.
 
 The table above is Note Mode. In Session Mode all eight tracks are on the pads at once and the track buttons launch
 scenes (section 8.1).
@@ -397,12 +397,19 @@ added, removed, swapped and put in a different order, and the track has macros o
 | Zone | Devices | How many |
 |---|---|---|
 | Rack | the chain as a whole, under the name of its preset: the item at the front, for saving and loading it (section 6.8) | one |
-| Macros | the track's own eight knobs, in banks (section 6.6) | up to four banks |
+| Macros | the track's own eight knobs, in banks (section 6.6) | one bank to start; more are added |
 | Notes in | PADS, the pad layout, and SEQ, the sequencer | one of each, always there. They can be swapped for another kind, not removed or moved |
-| MIDI effects | arp, chord, scale, random, strum and the like | none to four, in any order |
+| MIDI effects | arp, chord, scale, random, strum and the like | as many as are added, in any order; a new track has one place for them, empty |
 | Instrument | the sound; a sample-based one shows its sample as a second icon [M] | exactly one |
-| Audio effects | filter, delay, reverb and the like | none to four, in any order; a new track has two, as on Move |
+| Audio effects | filter, delay, reverb and the like | as many as are added, in any order; a new track has one place for them, empty |
 | Mix | the track's strip | one, always last |
+
+**The rack is dynamic.** A new track is the shortest chain that plays: `MACROS · MIDI FX · SOUND · FX`, with PADS
+and SEQ in front of the MIDI effects and MIX at the end, as always. The MIDI FX and FX places are empty to begin
+with and show as a +. Filling one opens the next + beside it, so the chain grows as it is used and is never
+longer than what is in it. How many MIDI effects, audio effects and macro banks a track may hold is not fixed
+here: the limits are sized once it is measured what the processor carries with eight tracks playing
+(`ARCHITECTURE.md`).
 
 A device moves only inside its zone: an audio effect cannot go in front of the instrument. A row longer than the
 screen scrolls, with a mark at the edge it continues past.
@@ -704,7 +711,8 @@ along its keys in that order; here a chord keeps its own key. A pack that starts
 ### 6.6 Macros
 
 A macro is a knob of the track's own that turns one or more parameters anywhere in its chain, each between limits
-of its own, as a macro on a Live rack does. Macros come in banks of eight, up to four banks a track.
+of its own, as a macro on a Live rack does. Macros come in banks of eight. A track starts with one bank and more
+are added; the limit is sized with the chain's (section 6).
 
 - **At the chain the encoders are the macros.** A track is played from here: its eight most useful controls are
   under the hands without entering anything. Factory presets arrive with the first bank mapped, so a Move player
@@ -900,6 +908,10 @@ Everything Move does with a held step still happens [11]. The screen shows a **s
 | Delete + an encoder | remove that lock from the step | [M+] |
 | Several steps held | all of the above on all of them; ranges shown where values differ | [M] |
 
+**A held step locks the page that is showing.** Holding a step never changes what the encoders are: they stay on
+the page the player is on, and turning one locks that parameter on the step. The TRIG page is one wheel press
+away while the step is held, and goes back when the step is let go. It does not take the encoders by itself.
+
 **Parameter locks are Move's per-step automation**, with two additions. A lock can be placed on a step with no note:
 the step lights in bright track colour. And any device in the row can be locked, including MIX, MIDI FX and the
 sequencer itself. To lock a filter sweep on step 5: select the filter with the wheel, hold step 5, turn the encoder.
@@ -978,8 +990,11 @@ them too.
 The page shown follows only the player's hands. It does not move with the playhead unless Page Follow is switched on
 in Workflow Settings.
 
-One Move gesture is given up here: in Move's Loop Mode a held bar plus a pad adds that note to every step of the bar
-[11.9]. Loop Mode takes the pads for the page length instead (rule R3: a layer that uses some pads takes them all).
+Loop Mode is RemoteFM1's, whole: pages picked with a click, a loop made from one page to another, a double click
+for one page alone, the two lower pad rows for the last page's length, Right for a new page that becomes real
+when it is pressed or a step goes into it. One Move gesture is given up for it: in Move's Loop Mode a held bar
+plus a pad adds that note to every step of the bar [11.9]. The pads are the page length instead (rule R3: a layer
+that uses some pads takes them all).
 
 ![Loop Mode](img/loop-pages.png)
 
@@ -1007,8 +1022,28 @@ FX.
 **The arp** starts from RemoteFM1's, which the owner calls good but not finished. Kept: three pages (main, a MOD lane,
 a TRANSPOSE lane); on a lane page the 16 step buttons are the lane's steps; the clip's notes feed the arp; recording
 stores what was played, not what the arp made of it. A quick click on Shift + Step 11 opens it, a hold switches it on
-or off, and the step's icon stays lit while it is on. To be reworked, by RemoteFM1's own change log: the order of the
-main page's knobs, and a visible state for an arp that is on but will not sound.
+or off, and the step's icon stays lit while it is on. An arp that is on but can never sound says `ARP SILENT`, as
+RemoteFM1's now does.
+
+**The arp's main page, laid out anew.** RemoteFM1's order was PATTERN, RATE, RANGE, an empty knob, MODE, GATE,
+OCT DIST, QUANT: pitch and time mixed, and a hole at knob 4. Proposed: the left hand has which notes, the right
+hand has when.
+
+| Encoder | Value | Was |
+|---|---|---|
+| 1 PATTERN | the walk: UP to AS PLAYED | knob 1 |
+| 2 RANGE | octaves, 8 down to 8 up | knob 3 |
+| 3 OCT DIST | how far apart the passes are | knob 7 |
+| 4 MODE | OFF, ON, 1-ST, ONCE, HOLD | knob 5 |
+| 5 RATE | 1/1 to 1/64, with triplets and quintuplets | knob 2 |
+| 6 GATE | how long each note lasts | knob 6 |
+| 7 SWING | the arp's own shuffle, from none to full | new, in the empty place |
+| 8 QUANT | when a run starts: at once, or on the next 1/n | knob 8 |
+
+RANGE and OCT DIST sit together because one says how many octaves and the other how far apart. MODE is the
+left hand's last knob, next to the wheel whose click turns the arp off and on. RATE opens the right hand, GATE
+keeps its place, and QUANT stays last. SWING is the one new value; if it is not wanted, knob 7 is dark and dead
+and nothing else moves.
 
 **The sequencer is a device too.** The default is Step, described above. Pressing the wheel on SEQ opens the browser
 on other sequencers: Euclid, Lanes (a length and rate per kit pad), Turing, Chords, Random Walk. These are the
@@ -1088,7 +1123,7 @@ below, its meter on the screen.
 | Shift + pad | select the clip without launching it | [M, from 18.8] |
 | Copy + pad, then pad | copy a clip (section 7.7) | [M] |
 | Delete + pad | delete a clip; one Undo brings it back | [M] |
-| Shift + Play | retrigger every playing clip | [M] |
+| **Shift + Play** | stop every clip, at the launch quantize. In Note Mode it is still Move's retrigger | [New; on Move it retriggers here too] |
 | **Track button** | launch the scene beside it on all 8 tracks; a scene with no clips stops every clip | [New] |
 | Slide along a row | the same: launch the scene | [M+, Move's slide, turned] |
 | Copy + track button, then a track button | copy a scene | [M, from 18.8] |
@@ -1175,7 +1210,7 @@ Slicing Mode [15.8]. What follows makes it as quick as Koala.
 | Threshold | recording waits for sound, so the sample starts on the hit |
 | Bar sync | when resampling, start on the next bar and stop after 1, 2, 4 or 8 bars: a loop that fits without trimming |
 | **Grab** (Shift + Sampling, then a pad) | the last 1, 2, 4 or 8 bars that Feverdream played are always kept; Grab puts them on the pad. Resampling after the fact, as Capture is for notes |
-| **Bounce** (Shift + Step 12, then a pad or a clip slot) | renders exactly the selected clip, track or scene, one pass, cut to the bar. Grab keeps what happened; Bounce makes what is written |
+| **Bounce** (Tools, on Shift + Step 13, then a pad or a clip slot) | renders exactly the selected clip, track or scene, one pass, cut to the bar. Grab keeps what happened; Bounce makes what is written |
 | Trim card | after every recording: the waveform with start and end on encoders 1 and 2, and Reverse, Normalize, Trim Silence, Chop on the pads' top row. Play the pad to hear it; Back or any other control accepts |
 | Any track type | a kit pad or sampler key takes the sample [M]; an Audio Loops track takes it into the selected clip as a loop; a synth track becomes a sampler [M] |
 | Tape face | the screen shows a tape recorder: reels turn while recording, the waveform runs out of it, the level is a needle |
@@ -1203,8 +1238,8 @@ screen's Shift card names all sixteen.
 | 9 | Keys & Scales | [M] |
 | 10 | Full Velocity | [M] |
 | 11 | Repeat / Arp: the track's first MIDI FX | [M] |
-| **12** (layers merging) | **Bounce**: render the selected clip, track or scene to audio, onto a pad or into an Audio Loops clip (section 10) | [New] |
-| **13** (star) | **Tools**: transpose, shift, reverse, randomize, humanize, regrid, locks to automation. The same step as Schwung's Tools and EvilGenius's | [New] |
+| **12** (layers merging) | **Mixer**: Session Mode's mix pages over Note Mode. The encoders are the eight tracks' levels, and the wheel turns to PAN, SEND A and SEND B (section 8.2); the pads and steps still play the track. Step 12 again, or Back, leaves. The layers merging read as tracks mixed into one | [New] |
+| **13** (star) | **Tools**: transpose, shift, reverse, randomize, humanize, regrid, locks to automation, **Bounce** (section 10). The same step as Schwung's Tools and EvilGenius's | [New] |
 | 14 | New Clip: select the track's next empty slot | [M, from 18.1] |
 | 15 | Double Loop | [M] |
 | 16 | Quantize | [M] |
@@ -1214,7 +1249,7 @@ Other Shift combinations:
 | Gesture | Does | |
 |---|---|---|
 | Shift + Undo | redo | [M] |
-| Shift + Play | retrigger | [M] |
+| Shift + Play | Note Mode: retrigger [M]. Session Mode: stop every clip (section 8.1) | [M+] |
 | Shift + Capture | clear what Capture is holding | [M] |
 | Shift + encoder | fine steps; on some parameters, the second value | [M] |
 | Shift + Plus / Minus | shift the pads by a scale degree; in Session Mode, four scenes | [M, from 18.4, 18.7] |
@@ -1362,51 +1397,44 @@ Decided:
 - **Left-hand Shift: holding Note/Session** (23 November 2026), for playing in the lap. Move's hold-to-preview on
   that button is given up (section 11.1).
 
+- **A held step locks the page that is showing** (24 November 2026, the owner's). The TRIG page does not take the
+  encoders whenever a step is held; a wheel press with the step held shows it (section 7.2).
+- **Loop Mode is RemoteFM1's** (24 November 2026, the owner's): the pads are the page length, and Move's "held bar
+  plus a pad" is given up (section 7.4).
+- **A track is picked by its button, in its bank, and no other way** (24 November 2026, the owner's). Track button
+  held + Step 1-8 was proposed and is rejected (section 4).
+- **Sixteen clips a track** (24 November 2026), to begin with; more can be added later.
+- **Each world is chosen with its device** (24 November 2026), as each synth and effect is designed. The pond and
+  the canyon in the pictures are sketches (section 6.1).
+- **Stop all clips: Shift + Play in Session Mode** (24 November 2026). An empty scene still does it too
+  (section 8.1).
+- **The three unlabelled step icons** (24 November 2026): step 4 Track Setup, step 12 Mixer, step 13 Tools.
+  Bounce, which was on step 12, is an entry in Tools (section 11).
+- **The rack is dynamic** (24 November 2026, the owner's): a new track starts as MACROS, MIDI FX, SOUND, FX and
+  grows as devices are added. The limits are sized later, by measurement (section 6).
+- **The first wheel press enters a device** (24 November 2026); its presets are at its front item (section 6).
+- **Macro banks change by entering MACROS and turning the wheel** (24 November 2026). A quicker gesture is added
+  only if playing it asks for one.
+- **Chord zone colours are ChoralRoot's** (24 November 2026): violet, orange and teal, to be checked on the unit
+  beside the track colours.
+- **The selected track's button, clicked again** (24 November 2026), switches the map row inside a device and
+  steps through the views at the chain (sections 6.7, 6.9).
+- **The map row is switched on and off, and takes a row of pads while it is on** (24 November 2026, the owner's).
+
 Open. Each has a recommendation in the text above.
 
-1. **Quick access to the TRIG page.** Wheel press while a step is held. An alternative is to make the TRIG page what
-   the encoders show whenever a step is held, which is faster for conditions and slower for locks, and differs from
-   Move.
-2. **Loop Mode takes the pads.** RemoteFM1's page-length pads replace Move's "held bar plus a pad adds that note to
-   every step" (section 7.4). Keeping both would need the page-length pads to give way while a page is held.
-3. **Track button held + Step 1-8** as a second way to pick a track, beside Shift + track (section 4). Both of the
-   apps studied do it. It costs nothing but adds a second way to do one thing.
-4. **Clips per track.** 16 proposed. EvilGenius has 64.
-5. **Which worlds.** Every device has its own weird theme (decided; section 6.1). What each one is gets decided as
-   each synth and effect is designed. None is designed yet; the pond and the canyon in the pictures are sketches.
-6. **The arp's main page.** RemoteFM1's change log says its knob order needs rethinking and one knob is empty. The
-   lanes carry over; the main page's eight knobs are to be laid out.
-7. **Stop all clips.** Launching an empty scene does it, as on Move. A dedicated gesture may be wanted for
-   performing.
-8. **The three undocumented step icons.** Step 4 (cylinder) as Track Setup, step 12 (layers merging) as Bounce, step
-   13 (star) as Tools. Step 13 follows Schwung and EvilGenius. Steps 4 and 12 are readings of the pictures; Ableton
-   has not said what they are for. Step 12 could instead be a mixer page. Perform moved from step 12 to the pad
-   layouts on step 8 because nothing about the merging icon says "perform". There is no convention to follow:
-   RemoteFM1 leaves all three empty, and Melodee uses them for Mixer, Looper and Song.
-9. **How many.** Four MIDI effects, four audio effects and four macro banks a track are proposed. The first brief
-   said two inserts a track; with a chain, two is what a new track starts with, and the real limit is what the
-   processor carries with eight tracks playing, which is not yet measured.
-10. **The first wheel press enters.** On Move a press on a device opens its browser; here it enters the device, and
-    presets are at the device's front item, a turn to the left and a press away. A Move player takes two more
-    moves to reach a device's presets. The alternative, keeping the press for the browser and entering some other
-    way, breaks the owner's "click to enter, Back to exit".
-11. **Changing macro bank from the chain.** Entering MACROS and turning the wheel does it. A quicker gesture may be
-    wanted once it is played.
-12. **Chord zone colours.** ChoralRoot's violet, orange and teal are close to three of the default track colours.
-    They mark zones only inside the Chords layout; whether that reads clearly beside a track's own colour needs
-    trying on the unit.
-13. **What switches the map row.** Proposed: the selected track's button, clicked again, inside a device. It is the
-    one free gesture under the left hand, and EvilGenius uses the same button to show and hide its top row. The
-    alternatives are a double click on the wheel, which delays the wheel's single click by the double-click window,
-    or a Shift + step, and no step's icon means it.
-15. **What steps through the views.** Proposed: the selected track's button, clicked again at the chain, the same
-    button that switches the map row inside a device. The alternative is Back pressed at home, which is under the
-    same thumb but would change the view by accident at the end of backing out.
-14. **The map row costs a row of notes** while it is on. In the Keyboard layout that is the upper octave's black
-    keys. It is an editing aid, switched off to play; whether it should instead appear only while a button is held
-    depends on trying it, since the gesture already needs one hand on a key and one on an encoder.
-16. **Where else the belt goes.** Decided for the chain and for Session Mode's wheel. Proposed for pad layouts,
-    track types, adding a device, Tools and views (section 3.5), which have no machine to run into yet.
+1. **A quicker way to the TRIG page.** Decided: a held step locks the page that is showing, and a wheel press with
+   the step held shows TRIG. With no step held, TRIG is the first page of SEQ, which is a turn and a press from
+   anywhere on the chain. The owner asked for trig pages without menu diving; whether these two are quick enough,
+   or TRIG wants a button of its own, is to be talked through.
+2. **The arp's main page.** A new knob order is proposed in section 7.6, with SWING in the empty place. It waits
+   for the owner's yes.
+3. **Shift + Play means two things.** It stops every clip in Session Mode and retriggers in Note Mode. If one
+   meaning everywhere is wanted, retrigger is the one to give up or move.
+4. **What stays on a track's belt.** The owner's dynamic rack names MACROS, MIDI FX, SOUND and FX. This draft keeps
+   the rack's name, PADS, SEQ and MIX on the belt as well. Whether they belong there or somewhere else is open.
+5. **Where else the belt goes.** Decided for the chain and for Session Mode's wheel. Proposed for pad layouts,
+   track types, adding a device, Tools and views (section 3.5), which have no machine to run into yet.
 
 ## 15. What RemoteFM1 and Melodee teach
 

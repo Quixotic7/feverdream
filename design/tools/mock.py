@@ -33,7 +33,7 @@ SCOPE = (["screen"] + ["knob-%d" % i for i in range(1, 9)] + ["knobled-%d" % i f
          + ["stepicon-%d" % i for i in range(1, 17)]
          + ["left", "right", "up", "down", "power"])
 SHIFT_NAMES = ["Projects", "Setup", "Workflow Settings", "Track Setup (new)", "Tempo", "Metronome", "Groove",
-               "Pad layout (incl. Perform)", "Keys & Scales", "Full Velocity", "Repeat / Arp", "Bounce (new)", "Tools (new)",
+               "Pad layout (incl. Perform)", "Keys & Scales", "Full Velocity", "Repeat / Arp", "Mixer (new)", "Tools (new)",
                "New Clip", "Double Loop", "Quantize"]
 OFF = "off"          # put(..., OFF): an RGB light switched off (None leaves it as it was)
 _n = [0]
@@ -119,7 +119,7 @@ def base_note(trk=2, steps="n...n..%n.k.c.n.", playstep=6):
     put(c, "menu", 0.4, label="Note / Session", click="Session Mode, on release [M]", hold="Left-hand Shift: all of "
         "Shift's meanings while held, for playing in the lap [New; Move previews the other mode here]",
         shift="")
-    put(c, "play", GREEN, label="Play", click="Start / stop [M]", shift="Retrigger [M]")
+    put(c, "play", GREEN, label="Play", click="Start / stop [M]", shift="Note Mode: retrigger [M]. Session Mode: stop every clip")
     put(c, "record", dim(RED, 0.3), label="Record", click="Record notes and automation, after the count-in [M]")
     put(c, "capture", 0.4, label="Capture", click="Keep what was just played [M]; on a generator: write its notes "
         "into the clip [New]", shift="Clear what Capture holds [M]")

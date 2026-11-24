@@ -526,8 +526,8 @@
       ['Keys & Scales', 'M', 'As on Move.'],
       ['Full Velocity', 'M', 'As on Move.'],
       ['Repeat / Arp', 'M', "The track's first MIDI effect."],
-      ['Bounce', 'New', 'Layers merging into one: render the selected clip, track or scene to audio, onto a pad or into an Audio Loops clip. Open: it could be a mixer page instead.'],
-      ['Tools', 'New', "The star, as in Schwung and EvilGenius: transpose, shift, reverse, randomize, humanize, regrid, locks to automation."],
+      ['Mixer', 'New', "Layers merging into one, read as tracks mixed: Session Mode's mix pages over Note Mode. The encoders are the eight tracks' levels; the wheel turns to pan and the sends. Step 12 again, or Back, leaves."],
+      ['Tools', 'New', "The star, as in Schwung and EvilGenius: transpose, shift, reverse, randomize, humanize, regrid, locks to automation, and Bounce."],
       ['New Clip', 'M', "Select the track's next empty slot."],
       ['Double Loop', 'M', 'As on Move.'],
       ['Quantize', 'M', 'As on Move.']];
@@ -623,7 +623,7 @@
     const LS = 'fd-review-v1';
     const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
     const items = [
-      ...FD.open.map((o) => ({ key: 'open-' + o.n, kind: 'open', lead: String(o.n), title: o.title, text: o.text })),
+      ...FD.open.map((o) => ({ key: 'open-' + slug(o.title), kind: 'open', lead: String(o.n), title: o.title, text: o.text })),
       ...FD.decided.map((d) => ({ key: 'decided-' + slug(d.title), kind: 'decided', lead: d.date, title: d.title, text: d.text }))];
     const WORD = { approve: 'Approved', reject: 'Rejected', discuss: 'To discuss' };
     let recs = {}, db = null, filter = 'all';
