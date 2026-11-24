@@ -1,0 +1,567 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feverdream Design</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a sticky row of views over one working area; the Move and its screen are the picture in every view,
+   always drawn as the dark hardware they are, on a page the colour of brushed aluminium (light) or a studio at night (dark). */
+:root{
+  --bg:#e8ebee; --panel:#f6f7f8; --ink:#14181d; --mute:#56606b; --line:#c8ced5; --chip:#dce1e6;
+  --accent:#d1440c; --accent-ink:#ffffff; --teal:#0a8672;
+  --dev:#1b1d20; --dev-edge:#383c42; --dev-ctl:#2a2d32; --dev-ink:#a3aab2; --oled:#06080a; --oled-on:#eaf6ff;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1115; --panel:#161a20; --ink:#e7eaee; --mute:#8f99a5; --line:#2a313a; --chip:#222932;
+  --accent:#ff7a2e; --accent-ink:#14181d; --teal:#2fd9b9; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1115; --panel:#161a20; --ink:#e7eaee; --mute:#8f99a5; --line:#2a313a; --chip:#222932;
+  --accent:#ff7a2e; --accent-ink:#14181d; --teal:#2fd9b9; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-stretch:118%;text-wrap:balance;margin:0;line-height:1.12}
+h1{font-size:clamp(28px,4.6vw,46px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:15px;font-weight:700;letter-spacing:.02em}
+p{margin:0;max-width:68ch}
+a{color:var(--accent)}
+.lab{font:500 11px/1.3 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.mute{color:var(--mute)}
+code,.mono{font-family:var(--mono);font-size:.92em}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;min-height:52px}
+.brand{font:800 17px var(--display);font-stretch:125%;letter-spacing:.06em;text-decoration:none;color:var(--ink);white-space:nowrap}
+.brand i{font-style:normal;color:var(--accent)}
+nav{display:flex;gap:2px;overflow-x:auto;min-width:0;scrollbar-width:none}
+nav a{padding:15px 11px;text-decoration:none;color:var(--mute);font-weight:500;white-space:nowrap;border-bottom:2px solid transparent}
+nav a:hover{color:var(--ink)}
+nav a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.view{padding-block:32px 72px;display:flex;flex-direction:column;gap:40px}
+.head{display:flex;flex-direction:column;gap:10px}
+.sec{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.grid>*{min-width:0}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.tag{display:inline-block;font:500 10.5px/1 var(--mono);padding:3px 5px;border-radius:3px;background:var(--chip);color:var(--mute);vertical-align:1px;white-space:nowrap}
+.tag.plus{color:var(--teal)} .tag.new{background:var(--accent);color:var(--accent-ink)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:7px 12px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--mute)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* the screen */
+canvas.oled{display:block;width:100%;aspect-ratio:2/1;image-rendering:pixelated;background:var(--oled);border-radius:3px;border:5px solid var(--oled);outline:1px solid var(--dev-edge)}
+
+/* facts strip */
+.facts{display:flex;flex-wrap:wrap;gap:8px 26px;font-family:var(--mono);font-size:13px;color:var(--mute)}
+.facts b{font:700 20px var(--display);font-stretch:118%;color:var(--ink);margin-right:6px}
+
+/* flow map */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px 0}
+.node{width:176px;background:var(--dev);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:7px;text-decoration:none;border:1px solid var(--dev-edge);cursor:pointer;text-align:left}
+.node:hover{border-color:var(--accent)}
+.node b{font:700 13px var(--display);font-stretch:112%;color:#f1f3f5}
+.node span{font-size:12px;line-height:1.35;color:var(--dev-ink)}
+.edge{display:flex;flex-direction:column;justify-content:center;align-items:center;width:104px;padding:0 6px;text-align:center;font:500 11px/1.3 var(--mono);color:var(--mute)}
+.edge::after{content:"";display:block;width:100%;height:9px;margin-top:5px;background:
+  linear-gradient(var(--mute),var(--mute)) left center/calc(100% - 6px) 1px no-repeat,
+  conic-gradient(from 240deg at 100% 50%,var(--mute) 60deg,transparent 0) right center/8px 9px no-repeat}
+.edge.both::after{background:
+  linear-gradient(var(--mute),var(--mute)) center/calc(100% - 12px) 1px no-repeat,
+  conic-gradient(from 240deg at 100% 50%,var(--mute) 60deg,transparent 0) right center/8px 9px no-repeat,
+  conic-gradient(from 60deg at 0 50%,var(--mute) 60deg,transparent 0) left center/8px 9px no-repeat}
+.flow.loose{gap:10px}
+@media (max-width:640px){ .node{width:calc(50% - 5px)} .flow{gap:10px} .edge{width:100%;flex-direction:row;gap:8px;padding:0}
+  .edge::after{width:40px;margin:0;transform:rotate(90deg)} }
+
+/* anatomy ladder */
+.ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.rung{display:flex;flex-direction:column;gap:8px}
+.rung .pic{height:58px;display:flex;align-items:flex-end;gap:3px;flex-wrap:wrap;align-content:flex-end}
+.rung .pic i{display:block;border-radius:2px;background:var(--chip)}
+.rung p{font-size:13.5px;color:var(--mute)}
+
+/* the Move */
+.movegrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+@media (max-width:1000px){.movegrid{grid-template-columns:minmax(0,1fr)}}
+.states{display:flex;flex-wrap:wrap;gap:6px}
+.surface{position:relative;min-width:700px}
+.surface svg{display:block;width:100%;height:auto}
+.surface canvas{position:absolute;left:2.38%;top:9.92%;width:10.72%;aspect-ratio:2/1;image-rendering:pixelated;pointer-events:none;border-radius:1px}
+.ctl{cursor:pointer}
+.ctl:hover .ring,.ctl.sel .ring,.ctl:focus-visible .ring{stroke:#ff7a2e;stroke-width:2.5}
+.ctl:focus{outline:none}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 68px);display:flex;flex-direction:column;gap:14px;min-width:0}
+.info{display:flex;flex-direction:column;gap:12px;min-height:220px}
+@media (max-width:1000px){.side{position:static} .side canvas{max-width:512px}}
+.info dl{margin:0;display:flex;flex-direction:column;gap:10px}
+.info dt{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.info dd{margin:2px 0 0;font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--mute)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+
+/* chain simulator */
+.simgrid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.simgrid{grid-template-columns:minmax(0,1fr)}}
+.unit{background:var(--dev);border:1px solid var(--dev-edge);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:14px;color:var(--dev-ink)}
+.knobs{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;padding-bottom:12px}
+.knob{aspect-ratio:1;border-radius:50%;background:var(--dev-ctl);border:1px solid var(--dev-edge);cursor:ns-resize;position:relative;padding:0;touch-action:none}
+.knob::after{content:"";position:absolute;left:50%;bottom:-9px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#3a3e44}
+.knob.on::after{background:#f4f6f8} .knob.touch{border-color:#ff7a2e}
+.unit .keys{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.key{background:var(--dev-ctl);border:1px solid var(--dev-edge);color:#e9ecef;border-radius:18px;padding:8px 13px;cursor:pointer;font:500 12px var(--mono)}
+.key:hover{border-color:#ff7a2e} .key[aria-pressed="true"]{background:#f4f6f8;color:#14181d}
+.say{font-family:var(--mono);font-size:13px;min-height:2.6em}
+.belt{display:flex;gap:10px;flex-wrap:wrap}
+.zone{display:flex;flex-direction:column;gap:5px}
+.zone>div{display:flex;gap:4px}
+.dv{padding:8px 9px;border:1px solid var(--line);border-radius:4px;font:500 12px var(--mono);background:var(--panel);min-width:38px;text-align:center}
+.dv.cur{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dv.in{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pgs{display:flex;gap:4px;flex-wrap:wrap}
+
+/* small demos */
+.press{width:120px;height:120px;border-radius:50%;background:var(--dev-ctl);border:3px solid var(--dev-edge);color:#cfd4da;font:600 13px var(--mono);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.press.down{background:#f4f6f8;color:#14181d}
+.tl{position:relative;height:28px;background:var(--chip);border-radius:3px;overflow:hidden}
+.tl i{position:absolute;top:0;bottom:0;left:0;background:var(--teal);width:0}
+.tl b{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--ink)}
+.tl span{position:absolute;top:6px;font:500 10.5px var(--mono);color:var(--ink)}
+.log{font-family:var(--mono);font-size:13px;min-height:7.6em;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.log li:first-child{color:var(--ink);font-weight:500} .log li{color:var(--mute)}
+.tracks{display:flex;gap:16px;align-items:center}
+.tb{display:flex;flex-direction:column;gap:7px;background:var(--dev);padding:10px;border-radius:8px}
+.tb button{width:26px;height:44px;border-radius:13px;border:1px solid var(--dev-edge);cursor:pointer;padding:0}
+.bigbox{font:800 34px var(--display);font-stretch:120%;display:flex;gap:12px;align-items:center}
+.bigbox span{background:var(--ink);color:var(--bg);padding:0 12px;border-radius:3px}
+.steps{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}
+.steps button,.steps i{aspect-ratio:1;border-radius:50%;border:1px solid var(--line);background:var(--chip);padding:0;font:500 10px var(--mono);color:var(--mute);display:flex;align-items:center;justify-content:center;font-style:normal}
+.steps button{cursor:pointer}
+.steps .lit{background:var(--teal);border-color:var(--teal);color:var(--bg)}
+.steps .head{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.steps .fn{border-color:var(--accent);color:var(--accent);border-width:2px}
+.steps .new{border-color:var(--accent);border-width:2px}
+.pads8{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.pads8 button{aspect-ratio:4/3;border-radius:3px;border:1px solid var(--line);background:var(--chip);cursor:pointer;font:500 10px var(--mono);color:var(--mute);padding:0}
+.pads8 .lit{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pads8 .head{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.readout{font:800 30px var(--display);font-stretch:118%}
+select{font:inherit;padding:6px 8px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+ol.rules{margin:0;padding:0;list-style:none;counter-reset:r;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px 26px}
+ol.rules li{counter-increment:r;display:grid;grid-template-columns:28px 1fr;gap:2px 0;font-size:14px}
+ol.rules li::before{content:counter(r);font:800 20px var(--display);color:var(--accent);grid-row:span 2}
+ol.rules b{font-family:var(--display);font-stretch:112%;font-size:15px}
+ol.rules span{color:var(--mute);grid-column:2}
+
+/* build */
+.layers{display:grid;gap:4px;font-family:var(--mono);font-size:13px}
+.layers>div{display:grid;gap:4px}
+.layers .cell{border:1px solid var(--line);border-radius:4px;padding:10px 12px;background:var(--panel);min-width:0}
+.layers .cell b{display:block;font:700 14px var(--display);font-stretch:112%;color:var(--ink)}
+.layers .cell{color:var(--mute)}
+.layers .plat{grid-template-columns:repeat(3,1fr)} .layers .mid{grid-template-columns:repeat(3,1fr)} .layers .low{grid-template-columns:1fr 2fr}
+.stages{display:grid;gap:6px}
+.stage{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr);gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;font-size:14px;background:var(--panel)}
+.stage b{font:800 20px var(--display)} .stage.now{border-color:var(--accent)} .stage.now b{color:var(--accent)}
+.stage span{color:var(--mute)}
+@media (max-width:640px){.stage{grid-template-columns:34px minmax(0,1fr)} .stage span{grid-column:2}}
+.hub{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hub .dv{font-size:12.5px}
+
+/* decisions and spec */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:5px;padding:14px;background:var(--panel);display:flex;flex-direction:column;gap:6px;font-size:14px;min-width:0}
+.card .n{font:800 18px var(--display);color:var(--accent)}
+.card p{color:var(--mute);max-width:none}
+.specgrid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.specgrid{grid-template-columns:minmax(0,1fr)} .toc{position:static!important;max-height:200px!important}}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 68px);max-height:calc(100vh - 100px);overflow:auto;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.toc a{color:var(--mute);text-decoration:none;padding:3px 0;cursor:pointer}
+.toc a:hover{color:var(--ink)}
+.doc{min-width:0;display:flex;flex-direction:column;gap:12px}
+.doc h1{font-size:30px;margin-top:6px} .doc h2{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)} .doc h3{margin-top:12px;font-size:16px}
+.doc ul,.doc ol{margin:0;padding-left:22px;max-width:74ch} .doc li{margin:3px 0}
+.doc p{max-width:74ch}
+.doc pre{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px;font-size:12.5px;margin:0}
+.doc .tw{overflow-x:auto}
+.doc canvas.oled{width:256px;display:inline-block;margin:4px 8px 4px 0}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="#map">FEVER<i>DREAM</i></a>
+  <nav id="nav" aria-label="Views">
+    <a href="#map">Map</a><a href="#move">The Move</a><a href="#chain">Chain</a><a href="#screens">Screens</a>
+    <a href="#grammar">Grammar</a><a href="#steps">Sequencing</a><a href="#build">Build</a>
+    <a href="#decisions">Decisions</a><a href="#spec">Spec</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+
+<!-- ============================================================ MAP -->
+<section class="view" id="v-map">
+  <div class="head">
+    <span class="lab" id="draft">Design draft</span>
+    <h1>An eight-track groovebox that a Move owner already knows how to play</h1>
+    <p>Feverdream runs on the Ableton Move in place of Move's own software. Every Move gesture keeps its meaning; everything new is reached by a gesture Move already taught. This site is the design plan, laid out so you can see how the parts connect. Nothing here is built yet.</p>
+    <div class="facts">
+      <span><b>8</b>tracks on 4 buttons</span><span><b>16</b>scenes</span><span><b>16 × 16</b>steps a clip</span>
+      <span><b>7</b>track types</span><span><b>300 ms</b>hold window</span><span><b>128 × 64</b>one-bit screen</span>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>Where you can be, and how you get there</h2>
+    <p class="mute">Each box is a state of the instrument with the screen it shows. Pick one to open it on the Move.</p>
+    <span class="lab">Three modes, as on Move</span>
+    <div class="flow" id="flow-modes"></div>
+    <span class="lab">Down the wheel in Note Mode</span>
+    <div class="flow" id="flow-wheel"></div>
+    <span class="lab">Held or latched over a mode: each lights its own button and leaves by the same button or Back</span>
+    <div class="flow loose" id="flow-held"></div>
+  </div>
+
+  <div class="sec">
+    <h2>What a project holds</h2>
+    <div class="ladder" id="ladder"></div>
+  </div>
+
+  <div class="sec">
+    <h2>Seven kinds of track</h2>
+    <p class="mute">The type follows the preset you load, as Move swaps a synth for a sampler when you sample into it.</p>
+    <div class="scroll"><table>
+      <tr><th>Type</th><th>Instrument</th><th>Pads</th><th>Steps show</th></tr>
+      <tr><td><b>Synth</b></td><td>a synthesizer</td><td>32 notes: In Key, Chromatic, Keyboard</td><td>every note</td></tr>
+      <tr><td><b>Sampler</b></td><td>one sample across the keys</td><td>32 notes</td><td>every note</td></tr>
+      <tr><td><b>Sample Kit</b></td><td>16 samples</td><td>left 16 the kit, right 16 pitches</td><td>the selected pad</td></tr>
+      <tr><td><b>Synth Kit</b></td><td>16 drum synth voices</td><td>as Sample Kit</td><td>the selected pad</td></tr>
+      <tr><td><b>MIDI</b></td><td>none; notes and CCs out</td><td>32 notes or the kit layout</td><td>every note</td></tr>
+      <tr><td><b>FX Bus</b></td><td>none; processes other tracks or the input</td><td>effect punch-ins</td><td>parameter locks only</td></tr>
+      <tr><td><b>Audio Loops</b></td><td>one loop a clip, stretched to tempo</td><td>left 16 slices, right 16 pitch and direction</td><td>slice triggers</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============================================================ MOVE -->
+<section class="view" id="v-move" hidden>
+  <div class="head">
+    <h1>The Move, state by state</h1>
+    <p>Choose a state to see every light and the screen. Point at any control to read what it does there: its quick click, its hold, and what Shift makes of it.</p>
+  </div>
+  <div class="states" id="states" role="group" aria-label="State"></div>
+  <div class="movegrid">
+    <div class="sec">
+      <div class="scroll"><div class="surface" id="surface"></div></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="side">
+      <div class="sec" style="gap:6px"><span class="lab">The screen, magnified</span><canvas class="oled" id="move-big" width="128" height="64" role="img"></canvas></div>
+      <aside class="panel info" id="info" aria-live="polite"></aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CHAIN -->
+<section class="view" id="v-chain" hidden>
+  <div class="head">
+    <h1>A track is a belt of devices</h1>
+    <p>The wheel moves the belt, a press enters the device in the middle, Back leaves. Inside, the wheel turns pages: the name for saving and loading, the main page that is the device's own world, then plain pages of eight. Try it.</p>
+  </div>
+  <div class="simgrid">
+    <div class="unit">
+      <canvas class="oled" id="sim-oled" width="128" height="64"></canvas>
+      <div class="knobs" id="sim-knobs"></div>
+      <div class="keys">
+        <button class="key" id="k-l" type="button">◀ wheel</button>
+        <button class="key" id="k-p" type="button">press</button>
+        <button class="key" id="k-r" type="button">wheel ▶</button>
+        <button class="key" id="k-b" type="button">Back</button>
+        <button class="key" id="k-s" type="button" aria-pressed="false">Shift</button>
+      </div>
+      <span style="font-size:12px">Keys: ← → turn the wheel, Enter presses, Esc is Back, hold Shift. Drag a knob up or down to turn it; a touch alone shows its name.</span>
+    </div>
+    <div class="sec">
+      <span class="lab">The track's chain, in signal order</span>
+      <div class="belt" id="sim-belt"></div>
+      <span class="lab" id="sim-pglab">Pages of the device</span>
+      <div class="pgs" id="sim-pgs"></div>
+      <span class="lab">Speech says</span>
+      <div class="panel say" id="sim-say" aria-live="polite"></div>
+      <p class="mute" style="font-size:13px">Device names, pages and parameters here are stand-ins. The synths and effects are not designed yet, and only the delay has a sketched world.</p>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="sec"><h2>At the chain</h2><div class="scroll"><table>
+      <tr><td>Wheel turn</td><td>move the belt a device <span class="tag">M</span></td></tr>
+      <tr><td>Wheel press</td><td>enter the device <span class="tag new">New</span></td></tr>
+      <tr><td>Press on a +</td><td>add a device there <span class="tag plus">M+</span></td></tr>
+      <tr><td>Shift + wheel turn</td><td>move the device inside its zone <span class="tag new">New</span></td></tr>
+      <tr><td>Mute / Delete / Copy + press</td><td>bypass, remove, copy the device</td></tr>
+      <tr><td>Encoders</td><td>the track's macros <span class="tag new">New</span></td></tr>
+    </table></div></div>
+    <div class="sec"><h2>Inside a device</h2><div class="scroll"><table>
+      <tr><td>Wheel turn</td><td>its pages, with no wrap <span class="tag new">New</span></td></tr>
+      <tr><td>Press on the name</td><td>Load, Save, Save As, Init, Revert <span class="tag plus">M+</span></td></tr>
+      <tr><td>Press on a page</td><td>the list of pages by name</td></tr>
+      <tr><td>Encoder touch</td><td>name and value take the screen <span class="tag">M</span></td></tr>
+      <tr><td>Hold a step + turn</td><td>lock that value on the step <span class="tag">M</span></td></tr>
+      <tr><td>Back</td><td>out to the chain; held: home <span class="tag">M</span></td></tr>
+    </table></div></div>
+  </div>
+  <div class="sec">
+    <h2>The belt, wherever kinds are chosen</h2>
+    <p class="mute">After EvilGenius: boxes of pixel art on a conveyor, the chosen one large in the middle, its name under the belt. The chain is one, running into MIX. Session Mode's wheel is another, running into OUT. Pad layouts, track types, device kinds and tools are proposed.</p>
+    <div class="grid g3" id="belt-shots"></div>
+  </div>
+</section>
+
+<!-- ============================================================ SCREENS -->
+<section class="view" id="v-screens" hidden>
+  <div class="head">
+    <h1>The screen: big, one thing, told on touch</h1>
+    <p>The panel is about three centimetres wide, so nothing depends on small text. At rest it is a picture. A touched knob or wheel takes the whole screen and says what it is. One 5 × 7 face at three sizes, three lines at most. These are hand-drawn mock-ups of the rules, not the instrument's renderer.</p>
+  </div>
+  <div class="grid g3" id="gallery"></div>
+</section>
+
+<!-- ============================================================ GRAMMAR -->
+<section class="view" id="v-grammar" hidden>
+  <div class="head">
+    <h1>One grammar for everything</h1>
+    <p>Nine rules, three sentence shapes and one hold window. Every other part of the design applies them.</p>
+  </div>
+  <ol class="rules">
+    <li><b>Move first</b><span>Every gesture in the Move manual does the same thing here.</span></li>
+    <li><b>One grammar for everything new</b><span>Select then turn. Hold a thing then turn or press. Modifier plus target.</span></li>
+    <li><b>Three questions always answered</b><span>Where am I? What do the controls do now? What just happened?</span></li>
+    <li><b>Modifiers explain themselves</b><span>A held modifier shows a hint card and lights its targets amber.</span></li>
+    <li><b>No hidden modes</b><span>A lit button and a corner symbol for every state. Back goes up a level.</span></li>
+    <li><b>Two hands, never three</b><span>Played in the lap: modifier under one hand, target under the other.</span></li>
+    <li><b>Everything can be said</b><span>Words come first; the screen draws them and the voice says them.</span></li>
+    <li><b>Big, simple, told on touch</b><span>A picture at rest; a touched control takes the screen.</span></li>
+    <li><b>Modulation is seen</b><span>A modulated value is drawn moving; a touched knob shows the value being set.</span></li>
+  </ol>
+
+  <div class="grid g2">
+    <div class="panel sec">
+      <h2>Press it: quick click, hold, double click</h2>
+      <p class="mute">A press lights the button and nothing more. A hold acts when the 300 ms window ends. A quick click acts on release, or after the double-click window when the control has a double click. Nothing belonging to one ever shows for another.</p>
+      <div class="row" style="gap:20px;align-items:flex-start">
+        <button class="press" id="press" type="button">PRESS</button>
+        <div class="sec" style="flex:1;min-width:200px">
+          <div class="tl" id="tl" aria-hidden="true"><i></i><b></b><span style="left:6px">press</span><span style="left:calc(50% + 6px)">300 ms: held</span></div>
+          <ul class="log" id="plog"><li>Waiting for a press.</li></ul>
+        </div>
+      </div>
+    </div>
+    <div class="panel sec">
+      <h2>Eight tracks on four buttons</h2>
+      <p class="mute">Bank A is tracks 1 to 4 in warm colours, bank B is 5 to 8 in cool ones. Shift + a track button selects the same row in the other bank. While Shift is held the buttons already show where you would land.</p>
+      <div class="tracks">
+        <div class="tb" id="tb"></div>
+        <div class="sec">
+          <div class="bigbox"><span id="tnum">3</span><em id="tbank" style="font-style:normal;font-size:16px;font-family:var(--mono);font-weight:500">BANK A</em></div>
+          <button class="btn" id="tshift" type="button" aria-pressed="false">Shift held</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>The Shift map</h2>
+    <p class="mute">All sixteen steps have a printed icon with its own light. Thirteen keep Move's meaning; the three Ableton never documented take the new entries. Holding Note/Session under the left thumb is a second Shift.</p>
+    <div class="steps" id="shiftsteps"></div>
+    <div class="panel" id="shiftinfo" aria-live="polite"></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="sec"><h2>What a light means</h2><div class="scroll"><table id="ledtable"></table></div></div>
+    <div class="sec"><h2>Two Shifts, two hands</h2>
+      <div class="scroll"><table>
+        <tr><th>Target is under</th><th>Use</th></tr>
+        <tr><td>the right hand: encoders, pads, steps, track buttons</td><td>Note/Session held, with the left thumb</td></tr>
+        <tr><td>the left hand: the wheel, Play, Back</td><td>Shift, with the right hand</td></tr>
+      </table></div>
+      <p class="mute">Note/Session, quick click: the mode switches on release. Held, or anything pressed while it is down: it is Shift and the mode stays. Shift double-clicked latches.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ SEQUENCING -->
+<section class="view" id="v-steps" hidden>
+  <div class="head">
+    <h1>Sequencing: Move's steps, with RemoteFM1's depth</h1>
+    <p>Sixteen steps a page, up to sixteen pages a clip, a rate for each clip, and a TRIG page for what a white light cannot show: chance, conditions, ratchets, micro timing and functions that move the playhead.</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="panel sec">
+      <h2>Pages and length</h2>
+      <p class="mute">In Loop Mode the steps are the pages, and the two lower rows of pads end the last page. Set both.</p>
+      <span class="lab">Pages (the step buttons)</span>
+      <div class="steps" id="pgsteps"></div>
+      <span class="lab">Last page ends after (the lower pad rows)</span>
+      <div class="pads8" id="lastpads"></div>
+      <div class="row"><label class="lab" for="rate">Rate</label>
+        <select id="rate"></select></div>
+      <div class="readout" id="lenout"></div>
+      <p class="mute" id="lensub"></p>
+    </div>
+    <div class="panel sec">
+      <h2>Functions move the playhead</h2>
+      <p class="mute">A function sits on a step and acts on the track's own playhead, so one track can fall out of step with the others on purpose. Here it sits on step 9.</p>
+      <div class="row">
+        <select id="fn" aria-label="Function"></select>
+        <label class="lab" for="amt">Amount</label><input id="amt" type="range" min="1" max="15" value="3" style="width:110px"><span class="mono" id="amtv">3</span>
+        <button class="btn" id="fnplay" type="button" aria-pressed="false">Play</button>
+      </div>
+      <div class="steps" id="fnsteps"></div>
+      <p id="fntext"></p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>The TRIG page</h2>
+    <p class="mute">The first page of the sequencer after its piano roll, with RemoteFM1's knob order. No step held: defaults for steps entered next. A step held: that step.</p>
+    <div class="scroll"><table>
+      <tr><th>Encoder</th><th>Value</th><th>Range</th></tr>
+      <tr><td><b>1 MICRO</b></td><td>micro timing; the same value as step + Left / Right</td><td>half a step early to half a step late</td></tr>
+      <tr><td><b>2 RATCH</b></td><td>hits spread over the step</td><td>1 to 8</td></tr>
+      <tr><td><b>3 CHANCE</b></td><td>probability the step plays</td><td>1 to 100%</td></tr>
+      <tr><td><b>4 COND</b></td><td>when the step plays</td><td>none, 1:2 to 8:8, FILL, !FILL, PRE, !PRE, NEI, !NEI, 1ST, !1ST</td></tr>
+      <tr><td><b>5 FUNC</b></td><td>a step function, run when the step plays</td><td>RESTART, REVERSE, FORWARD, FLIP, RANDOM, RND FN, LEAP, JUMP, REPEAT</td></tr>
+      <tr><td><b>6 AMOUNT</b></td><td>the function's number</td><td>LEAP -15 to +15, JUMP a step, REPEAT 1 to 16</td></tr>
+      <tr><td><b>7 LENGTH</b></td><td>note length; the same value as step + wheel</td><td>1/8 of a step to 64 steps, or held to the next note</td></tr>
+      <tr><td><b>8 SLIDE</b></td><td>glide into the next note</td><td>off, on</td></tr>
+    </table></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="sec"><h2>What the steps row shows</h2>
+      <p class="mute">A white step light cannot show a chance or a condition, so the screen's row of sixteen marks does.</p>
+      <div style="max-width:384px" id="stepsrow"></div>
+      <div class="scroll"><table>
+        <tr><td>Solid square</td><td>a note that always plays</td></tr>
+        <tr><td>Dithered square</td><td>a note with a chance</td></tr>
+        <tr><td>Hollow square</td><td>a note with a condition</td></tr>
+        <tr><td>Triangle</td><td>a lock with no note</td></tr>
+        <tr><td>Tick above a square</td><td>a note with locks</td></tr>
+      </table></div>
+    </div>
+    <div class="sec"><h2>Copy and Delete are modifiers only</h2>
+      <p class="mute">As in RemoteFM1. Held, each shows a hint card and lights its targets amber. One clipboard, with marks on what it holds.</p>
+      <div style="max-width:384px" id="copyshot"></div>
+      <p class="mute">Fill is Shift + Loop, held: the FILL conditions pass while it is down.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ BUILD -->
+<section class="view" id="v-build" hidden>
+  <div class="head">
+    <h1>How it gets built</h1>
+    <p>A portable C core with three faces: the Move, a headless simulator for tests, and a browser build. The browser build is why the whole interface can be clicked through and judged before any sound exists.</p>
+  </div>
+  <div class="sec">
+    <h2>Layers</h2>
+    <div class="layers">
+      <div class="plat">
+        <div class="cell"><b>plat/move</b>static aarch64 binary: the instrument</div>
+        <div class="cell"><b>plat/sim</b>headless, driven by scripts of presses: tests</div>
+        <div class="cell"><b>plat/web</b>WebAssembly with a drawing of the Move: the desk, then the Remote</div>
+      </div>
+      <div><div class="cell"><b>app</b>ties the layers together; owns the threads' handoff</div></div>
+      <div class="mid">
+        <div class="cell"><b>ctl</b>gestures, one hold window, modes, actions</div>
+        <div class="cell"><b>ui</b>screen, LEDs, words, belt, themes, motion</div>
+        <div class="cell"><b>web</b>manager server, remote protocol</div>
+      </div>
+      <div><div class="cell"><b>model</b>projects, tracks, clips, notes, locks, devices, undo</div></div>
+      <div class="low">
+        <div class="cell"><b>seq</b>clock, launch, sequencers</div>
+        <div class="cell"><b>dsp</b>module host, instruments, effects, mixer; portable C, later Max for Live</div>
+      </div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="sec"><h2>One description of a parameter</h2>
+      <p class="mute">Written once in the schema, with a stable id, and read by everything that touches a value.</p>
+      <div class="hub">
+        <span class="dv cur">fd_param</span><span class="mute">→</span>
+        <span class="dv">encoder</span><span class="dv">touch view</span><span class="dv">voice</span><span class="dv">step lock</span>
+        <span class="dv">automation</span><span class="dv">macro</span><span class="dv">mod matrix</span><span class="dv">preset</span>
+        <span class="dv">web</span><span class="dv">Live export</span>
+      </div>
+      <p class="mute">A page is a name and up to eight parameter ids, so a parameter can sit on a device's main page and on its own page, and pages can be rearranged without breaking a project.</p>
+    </div>
+    <div class="sec"><h2>Threads</h2>
+      <div class="scroll"><table>
+        <tr><th>Thread</th><th>Does</th></tr>
+        <tr><td><b>Audio</b><br><span class="mute mono">FIFO, core 3</span></td><td>one SPI transfer a block of 128 frames: surface in, clock, sequencers, render, audio and LEDs out. Never allocates, locks or touches disk</td></tr>
+        <tr><td><b>Control</b><br><span class="mute mono">2 ms</span></td><td>surface events into actions on the model; commands down a lock-free queue</td></tr>
+        <tr><td><b>Frame</b><br><span class="mute mono">33 ms</span></td><td>the screen and LEDs from the model, the live values and the scope taps</td></tr>
+        <tr><td><b>Workers</b></td><td>load, save, stream samples, export</td></tr>
+        <tr><td><b>Web</b><br><span class="mute mono">own process</span></td><td>the manager and the remote; cannot glitch the audio</td></tr>
+      </table></div>
+    </div>
+  </div>
+  <div class="sec">
+    <h2>Order of work</h2>
+    <p class="mute">Each stage ends with something to play with and judge. Stage 1 has no sound on purpose: the risk is clarity, and that is cheapest to test with no engine underneath.</p>
+    <div class="stages">
+      <div class="stage now"><b>0</b><div>This design, the board, the mock-ups</div><span>Agreement on the open decisions. You are here.</span></div>
+      <div class="stage"><b>1</b><div>Control layer, screen, model; browser and simulator builds. No sound</div><span>The whole navigation clickable and spoken in a browser</span></div>
+      <div class="stage"><b>2</b><div>The Move build, clock, step sequencer, one synth, Sample Kit, mixer, two effects, save and load</div><span>A four-bar beat made on the unit, the Move way</span></div>
+      <div class="stage"><b>3</b><div>Record, capture, automation, Loop Mode, browser, presets, sampling</div><span>Parity: a Move owner misses nothing</span></div>
+      <div class="stage"><b>4</b><div>Eight tracks and banks, 16 pages, rates, locks on every device, sends and master</div><span>The core of what is new</span></div>
+      <div class="stage"><b>5</b><div>Feverdream Manager: files, then Remote</div><span>Projects and samples managed from a browser</span></div>
+      <div class="stage"><b>6</b><div>MIDI FX, generators, MIDI tracks, FX Bus, Audio Loops, Perform, Grab, Bounce</div><span>All seven track types</span></div>
+      <div class="stage"><b>7</b><div>Scripted sequencers, Live export, Max for Live devices</div><span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ DECISIONS -->
+<section class="view" id="v-decisions" hidden>
+  <div class="head">
+    <h1>Decisions</h1>
+    <p>What is settled, and what still waits for an answer. Each open item has a recommendation in the spec.</p>
+  </div>
+  <div class="sec"><h2>Open</h2><div class="cards" id="open"></div></div>
+  <div class="sec"><h2>Decided</h2><div class="cards" id="decided"></div></div>
+</section>
+
+<!-- ============================================================ SPEC -->
+<section class="view" id="v-spec" hidden>
+  <div class="head">
+    <h1>The documents</h1>
+    <div class="row"><button class="btn" id="doc-design" type="button" aria-pressed="true">UI and UX design</button><button class="btn" id="doc-arch" type="button" aria-pressed="false">Architecture</button></div>
+  </div>
+  <div class="specgrid"><div class="toc" id="toc"></div><article class="doc" id="doc"></article></div>
+</section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
