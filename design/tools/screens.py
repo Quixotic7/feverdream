@@ -36,8 +36,18 @@ def name_line(s, trk, text, y=24):
     L(s, 18, y, text)
 
 
-def strip(s, n, cur, y=47, front=False):
-    """Where you are in a row: a segment each, the current one thick. front: a square first (a preset's place)."""
+def strip(s, n, cur, y=1, front=False, boxes=False):
+    """The page marks, along the top of the screen: where you are in a row, a segment each, the current one thick.
+    front: a square first (a preset's place). boxes: small boxes, not segments: the marks of a belt, a box a kind."""
+    if boxes:
+        seg = (W - (n - 1) * 3) // n
+        for i in range(n):
+            x = i * (seg + 3)
+            if i == cur:
+                s.fill(x, y - 1, seg, 4)
+            else:
+                s.rect(x, y - 1, seg, 4)
+        return
     x0 = 8 if front else 0
     if front:
         s.fill(0, y - 1, 4, 3) if cur < 0 else s.hl(1, y, 2)
@@ -219,7 +229,23 @@ def scr_chain(sel=4, off=0):
     if sel == 7:
         s.inv(107, 1, 20, 20)
     name_line(s, 3, CHAIN_NAMES[sel if off < 9 else sel - 1], 25)
-    strip(s, 8, sel if off < 9 else sel - 1, 45)
+    steps_row(s)
+    return s
+
+
+MACROS = [("bar", 0.7), ("lp", 0.45), ("sine", 0.3), ("env", 0.6), ("steps", 0.75), ("bar", 0.35), ("peak", 0.8),
+          ("bar", 0.9)]
+
+
+def scr_chain_rest(sel=4, t=0.0):
+    """The chain at rest: no belt. The page marks along the top, a box a device, say where the wheel is; under
+    them the eight macros, which are what the encoders turn here; then the track's number and the device's name."""
+    s = Scr()
+    strip(s, 8, sel, boxes=True)
+    for i, (kind, v) in enumerate(MACROS):
+        live = min(1.0, max(0.0, v + 0.12 * math.sin(t))) if i == 1 else v
+        picto(s, kind, (i % 4) * 32 + 3, 7 + (i // 4) * 11, 26, 9, live)
+    name_line(s, 3, CHAIN_NAMES[sel], 30)
     steps_row(s)
     return s
 
@@ -320,10 +346,10 @@ def scr_page(mod=0.0):
     s = Scr()
     for i, (kind, v) in enumerate(FILTER):
         live = min(1.0, max(0.0, v + mod)) if i == 0 else v
-        picto(s, kind, (i % 4) * 32 + 3, 1 + (i // 4) * 11, 26, 9, live)
+        picto(s, kind, (i % 4) * 32 + 3, 7 + (i // 4) * 11, 26, 9, live)
         if i == 0:
-            s.vl(3 + int(v * 20) + 1, 0, 2)
-    name_line(s, 3, "FILTER")
+            s.vl(3 + int(v * 20) + 1, 6, 2)
+    name_line(s, 3, "FILTER", 30)
     strip(s, 6, 2, front=True)
     steps_row(s)
     return s
@@ -403,7 +429,7 @@ def scr_loop():
                 s.vl(x + 6, y + 3, 5)
     L(s, 2, 27, "53 STEPS")
     corner(s, "loop")
-    strip(s, 4, 1)
+    strip(s, 4, 1, y=47)
     steps_row(s, steps="n.n.n" + "." * 11, playstep=None, last=5)
     return s
 
@@ -476,7 +502,7 @@ def scr_wheel():
     L(s, 18, 2, "BASS")
     L(s, 2, 21, "DRIFT")
     L(s, 2, 40, "FILTER 3/6")
-    strip(s, 6, 2, y=60, front=True)
+    strip(s, 6, 2, y=60, front=True)       # with words on the screen the marks go to the bottom
     return s
 
 
@@ -486,7 +512,7 @@ def scr_step():
     L(s, 2, 2, "C3 E3 G3")
     S(s, 2, 24, "CHANCE 75  1:2  X2")
     S(s, 2, 34, "LOCKS 2")
-    strip(s, 4, 0)
+    strip(s, 4, 0, y=47)
     steps_row(s, steps="n...L..%n.k.c.n.", playstep=None, held=4)
     return s
 
@@ -810,12 +836,16 @@ SCREENS = [
     ("view-tracks", "View: Tracks", scr_tracks,
      "The four tracks of the bank, a row each in the order of the track buttons, each its own page and playhead. "
      "The track's number large at the left, the selected one boxed."),
-    ("note-device-view", "The chain at rest", scr_chain,
-     "Home in Note Mode: a picture and one large line. The chain is a belt: the devices ride it in signal order "
-     "into the machine at the right, which is MIX, and the one under the wheel stays in the middle while the belt "
-     "moves. The track's number boxed, the device's name. The strip: where the wheel is along the chain. The "
-     "steps row: solid a note, dithered a chance, hollow a condition, a triangle a lock with no note. No small "
-     "text: a touch tells the rest."),
+    ("note-device-view", "The chain: at rest, then the wheel turned", scr_chain_rest,
+     "Home in Note Mode. At rest there is no belt: the page marks along the top, a box a device, say where the "
+     "wheel is; under them the eight macros the encoders turn; then the track's number boxed and the device's "
+     "name. Turn the wheel and the belt comes up: the devices ride it in signal order into the machine at the "
+     "right, which is MIX, and the one under the wheel stays in the middle. A second after the last click the "
+     "belt is gone again. The steps row: solid a note, dithered a chance, hollow a condition, a triangle a lock "
+     "with no note."),
+    ("chain-belt", "The chain's belt, while the wheel turns", scr_chain,
+     "What a turn of the wheel shows at the chain, and only while it turns: the track's devices as boxes on a "
+     "conveyor, the one under the wheel in the middle, its name large, MIX the machine the belt runs into."),
     ("belt-pick", "A picker belt", scr_belt,
      "Where the wheel chooses one of several kinds of thing, the kinds ride a conveyor as boxes of pixel art, after "
      "EvilGenius: the chosen one large in the middle, its name large under the belt. Here the pad layouts of "
@@ -871,9 +901,14 @@ SCREENS = [
 # animations for the board: key -> [(screen, milliseconds)]
 ANIM = {
     # a turn of the wheel: the belt slides a box, then rests
-    "note-device-view": ([(scr_chain(4, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(4, 0), 1400)]
-                         + [(scr_chain(5, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(5, 0), 1400)]
-                         + [(scr_chain(4, o), 45) for o in (-18, -13, -8, -4, -1)]),
+    # at rest: the marks and the macros. A turn: the belt comes up, slides a box, stays a second, and goes
+    "note-device-view": ([(scr_chain_rest(4, i * 0.8), 180) for i in range(8)]
+                         + [(scr_chain(5, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(5, 0), 900)]
+                         + [(scr_chain_rest(5, i * 0.8), 180) for i in range(8)]
+                         + [(scr_chain(4, o), 45) for o in (-18, -13, -8, -4, -1)] + [(scr_chain(4, 0), 900)]),
+    "chain-belt": ([(scr_chain(4, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(4, 0), 1400)]
+                   + [(scr_chain(5, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(5, 0), 1400)]
+                   + [(scr_chain(4, o), 45) for o in (-18, -13, -8, -4, -1)]),
     "belt-session": ([(scr_sbelt(3, 0), 1200)] + [(scr_sbelt(4, o), 45) for o in (22, 15, 9, 4, 1)]
                      + [(scr_sbelt(4, 0), 1200)] + [(scr_sbelt(3, o), 45) for o in (-22, -15, -9, -4, -1)]),
     "belt-pick": ([(scr_belt(2, 0), 1200)] + [(scr_belt(3, o), 45) for o in (22, 15, 9, 4, 1)]

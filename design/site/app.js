@@ -102,7 +102,7 @@
     N('note-device-view', 'Note Mode', 'play, sequence and edit one track', ['move', 0]), E('Note/Session, quick click', 1),
     N('session', 'Session Mode', 'columns are tracks, rows are scenes', ['move', 4])]);
   flow('flow-wheel', [
-    N('note-device-view', 'The chain', 'home: the belt of devices', ['chain']), E('press: in · Back: out', 1),
+    N('note-device-view', 'The chain', 'home: the macros; the belt on a turn', ['chain']), E('press: in · Back: out', 1),
     N('device-main', 'Main page', "where a device opens: its own world, eight key parameters", ['chain']), E('wheel turn', 1),
     N('param-page', 'Plain pages', 'eight pictograms a page: OSC A, FILTER…', ['chain']), E('touch an encoder'),
     N('param-touch', 'Touch view', 'name and value take the screen', ['screens']), E('wheel left of the main page, press'),
@@ -273,7 +273,12 @@
     delay: (s, x, y) => { [12, 8, 5, 3].forEach((h, i) => s.fill(x + 2 + i * 4, y + 15 - h, 2, h)); },
     mix: (s, x, y) => { [9, 4, 11].forEach((k, i) => { const cx = x + 3 + i * 6; s.vl(cx, y + 2, 14); s.fill(cx - 2, y + k, 5, 3); }); },
   };
-  function strip(s, n, curI, y, front) {
+  function strip(s, n, curI, y, front, boxes) {
+    if (boxes) {                       // the marks of a belt: a small box a kind, the current one filled
+      const seg = Math.floor((128 - (n - 1) * 3) / n);
+      for (let i = 0; i < n; i++) { const x = i * (seg + 3); if (i === curI) s.fill(x, y - 1, seg, 4); else s.rect(x, y - 1, seg, 4); }
+      return;
+    }
     const x0 = front ? 8 : 0;
     if (front) { if (curI < 0) s.fill(0, y - 1, 4, 3); else s.hl(1, y, 2); }
     const seg = Math.floor((128 - x0 - (n - 1) * 2) / n);
@@ -312,7 +317,7 @@
     { zone: 'MIX', name: 'MIX', full: 'Mix', kind: 'the strip', ic: 'mix', nofront: 1, pages: [{ name: 'MIX', main: 1, p: prm('VOLUME', 'PAN', 'SEND A', 'SEND B', 'DRIVE', 'WIDTH', 'OUTPUT', 'INPUT') }] },
   ];
   const SHEET = ['LOAD', 'SAVE', 'SAVE AS', 'INIT', 'REVERT'];
-  const S = { lvl: 'chain', i: 7, pg: 0, touch: -1, touchUntil: 0, shift: false, toast: null, toastUntil: 0, sheet: 0, list: 0, off: 0, flash: 0, owner: 'chain', note: '' };
+  const S = { lvl: 'chain', i: 7, pg: 0, touch: -1, touchUntil: 0, shift: false, toast: null, toastUntil: 0, sheet: 0, list: 0, off: 0, flash: 0, beltUntil: 0, owner: 'chain', note: '' };
   const dev = () => chain[S.i];
   const title = (t) => t.charAt(0) + t.slice(1).toLowerCase();
   function params() {
@@ -329,6 +334,7 @@
         const a = dev(), b = chain[j];
         if (a.move && b && b.move && b.zone === a.zone) { chain[S.i] = b; chain[j] = a; S.i = j; S.off = 18 * d; S.note = `${a.full} moved inside ${title(a.zone)}.`; } else S.note = a.move ? `${a.full} stays inside ${title(a.zone)}: a device moves only in its zone.` : `${a.full} cannot be moved.`;
       } else if (j >= 0 && j < chain.length) { S.i = j; S.off = 18 * d; }
+      S.beltUntil = performance.now() + 1100;                  // the belt shows only while the wheel turns, and a second after
     } else if (S.lvl === 'dev') {
       const pg = clamp(S.pg + d, dev().nofront ? 0 : -1, dev().pages.length - 1);
       if (pg !== S.pg) { S.pg = pg; if (pg >= 0) S.flash = performance.now() + 550; }
@@ -404,6 +410,25 @@
       for (let i = 0; i < 8; i++) { const x = 3 + i * 16; if (i === S.touch) s.fill(x, 57, 10, 5); else s.rect(x, 57, 10, 5); }
       return s.p;
     }
+    const pictos = (list, y0) => list.forEach((p, k) => {
+      const x = (k % 4) * 32, y = y0 + (k >> 2) * 13;
+      if (!p) { s.set(x + 10, y + 5); s.set(x + 16, y + 5); s.set(x + 22, y + 5); return; }
+      const wob = p.n === 'CUTOFF' && !RM ? Math.sin(now / 420) * 0.13 : 0;
+      s.hl(x + 4, y + 5, 24); s.vl(x + 4 + Math.round(p.v * 22), y + 9, 2);
+      s.fill(x + 3 + Math.round(clamp(p.v + wob, 0, 1) * 22), y + 1, 3, 9);
+    });
+    const stepsRow = () => {
+      const pat = 'n...n..%n.k.c.n.', play = Math.floor(now / 240) % 16;
+      for (let i = 0; i < 16; i++) { const x = i * 8, c = pat[i]; if (c === 'n') s.fill(x + 1, 54, 5, 5); else if (c === '.') s.set(x + 3, 56); else s.rect(x + 1, 54, 5, 5); if (i === play) s.inv(x, 53, 7, 7); }
+    };
+    if (S.lvl === 'chain' && now >= S.beltUntil && !S.off) {
+      // at rest: no belt. The marks along the top, the macros the encoders turn, the track and the device's name
+      strip(s, chain.length, S.i, 1, false, true);
+      pictos(ps, 6);
+      s.fill(0, 34, 14, 17); s.t(2, 35, '3', 2, 0); s.t(18, 35, d.name, 2);
+      stepsRow();
+      return s.p;
+    }
     if (S.lvl === 'chain') {
       const off = Math.round(S.off), last = chain.length - 1;
       chain.forEach((c, j) => { if (j === last) return; const x = 55 + (j - S.i) * 18 + off; if (x >= 0 && x + 17 <= 104) ICON[c.ic](s, x, 0); });
@@ -414,14 +439,12 @@
       s.rect(106, 0, 22, 22); s.vl(106, 3, 14, 0); ICON.mix(s, 109, 2);
       if (S.i === last) s.inv(107, 1, 20, 20);
       s.fill(0, 24, 14, 17); s.t(2, 25, '3', 2, 0); s.t(18, 25, d.name, 2);
-      strip(s, chain.length, S.i, 45);
-      const pat = 'n...n..%n.k.c.n.', play = Math.floor(now / 240) % 16;
-      for (let i = 0; i < 16; i++) { const x = i * 8, c = pat[i]; if (c === 'n') s.fill(x + 1, 54, 5, 5); else if (c === '.') s.set(x + 3, 56); else s.rect(x + 1, 54, 5, 5); if (i === play) s.inv(x, 53, 7, 7); }
+      stepsRow();
       return s.p;
     }
     if (S.lvl === 'sheet') { listScreen(s, SHEET, S.sheet); return s.p; }
     if (S.lvl === 'list') { listScreen(s, d.pages.map((p) => p.name), S.list); return s.p; }
-    if (S.pg < 0) { s.t(2, 2, d.name); s.tc(64, 22, d.preset, 2); strip(s, d.pages.length, -1, 58, true); return s.p; }
+    if (S.pg < 0) { strip(s, d.pages.length, -1, 1, true); s.t(2, 8, d.name); s.tc(64, 28, d.preset, 2); return s.p; }
     const pg = d.pages[S.pg];
     if (now < S.flash) { s.tc(64, 24, pg.name, 2); return s.p; }
     if (pg.main && d.world) { const fr = FD.screens[d.world].frames; return bits(fr[RM ? 0 : Math.floor(now / 110) % fr.length]); }
@@ -429,16 +452,10 @@
       for (let x = 0; x < 128; x += 3) s.set(x, 50);
       pg.p.forEach((p, k) => { if (!p) return; const x = 8 + k * 16, h = Math.round(6 + p.v * 30 + (RM ? 0 : Math.sin(now / 320 + k * 1.3) * 2)); s.vl(x, 50 - h, h); s.rect(x - 3, 50 - h - 6, 7, 7); s.set(x - 1, 50 - h - 4); s.set(x + 1, 50 - h - 4); });
     } else {
-      s.tc(64, 1, pg.name, 2);
-      pg.p.forEach((p, k) => {
-        const x = (k % 4) * 32, y = 22 + (k >> 2) * 16;
-        if (!p) { s.set(x + 10, y + 5); s.set(x + 16, y + 5); s.set(x + 22, y + 5); return; }
-        const wob = p.n === 'CUTOFF' && !RM ? Math.sin(now / 420) * 0.13 : 0;
-        s.hl(x + 4, y + 5, 24); s.vl(x + 4 + Math.round(p.v * 22), y + 9, 2);
-        s.fill(x + 3 + Math.round(clamp(p.v + wob, 0, 1) * 22), y + 1, 3, 9);
-      });
+      pictos(pg.p, 6);
+      s.tc(64, 36, pg.name, 2);
     }
-    strip(s, d.pages.length, S.pg, 58, !d.nofront);
+    strip(s, d.pages.length, S.pg, 1, !d.nofront);
     return s.p;
   }
   (function buildSim() {
@@ -463,7 +480,7 @@
       if (e.key === 'Shift' && !S.shift) { S.shift = true; syncSim(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); turn(-1); } else if (e.key === 'ArrowRight') { e.preventDefault(); turn(1); } else if (e.key === 'Enter' && !onBtn) { e.preventDefault(); press(); } else if (e.key === 'Escape') back();
     });
     document.addEventListener('keyup', (e) => { if (e.key === 'Shift' && S.shift && !$('v-chain').hidden) { S.shift = false; syncSim(); } });
-    $('belt-shots').append(shot('note-device-view'), shot('belt-session'), shot('belt-pick'));
+    $('belt-shots').append(shot('chain-belt'), shot('belt-session'), shot('belt-pick'));
     syncSim();
   })();
 

@@ -315,8 +315,8 @@ ol.rules span{color:var(--mute);grid-column:2}
 <!-- ============================================================ CHAIN -->
 <section class="view" id="v-chain" hidden>
   <div class="head">
-    <h1>A track is a belt of devices</h1>
-    <p>The wheel moves the belt, a press enters the device in the middle, Back leaves. Inside, the wheel turns pages: the name for saving and loading, the main page that is the device's own world, then plain pages of eight. Try it.</p>
+    <h1>A track is a chain of devices</h1>
+    <p>At rest the screen shows the track's macros, with page marks along the top for where the wheel is. Turn the wheel and the belt of devices comes up, for as long as it turns; a press enters the device in the middle, Back leaves. Inside, the wheel turns pages: the name for saving and loading, the main page that is the device's own world, then plain pages of eight. Try it.</p>
   </div>
   <div class="simgrid">
     <div class="unit">
@@ -343,7 +343,7 @@ ol.rules span{color:var(--mute);grid-column:2}
   </div>
   <div class="grid g2">
     <div class="sec"><h2>At the chain</h2><div class="scroll"><table>
-      <tr><td>Wheel turn</td><td>move the belt a device <span class="tag">M</span></td></tr>
+      <tr><td>Wheel turn</td><td>the belt comes up and moves a device; it goes a second after the last click <span class="tag">M</span></td></tr>
       <tr><td>Wheel press</td><td>enter the device <span class="tag new">New</span></td></tr>
       <tr><td>Press on a +</td><td>add a device there <span class="tag plus">M+</span></td></tr>
       <tr><td>Shift + wheel turn</td><td>move the device inside its zone <span class="tag new">New</span></td></tr>
@@ -361,7 +361,7 @@ ol.rules span{color:var(--mute);grid-column:2}
   </div>
   <div class="sec">
     <h2>The belt, wherever kinds are chosen</h2>
-    <p class="mute">After EvilGenius: boxes of pixel art on a conveyor, the chosen one large in the middle, its name under the belt. The chain is one, running into MIX. Session Mode's wheel is another, running into OUT. Pad layouts, track types, device kinds, tools and views are belts too.</p>
+    <p class="mute">After EvilGenius: boxes of pixel art on a conveyor, the chosen one large in the middle, its name under the belt. A belt shows only while the wheel turns; at rest, page marks along the top say where it stands. The chain is one, running into MIX. Session Mode's wheel is another, running into OUT. Pad layouts, track types, device kinds, tools and views are belts too.</p>
     <div class="grid g3" id="belt-shots"></div>
   </div>
 </section>
@@ -493,14 +493,24 @@ ol.rules span{color:var(--mute);grid-column:2}
     <p class="mute">The first page of the sequencer after its piano roll, with RemoteFM1's knob order. No step held: defaults for steps entered next. A step held: that step.</p>
     <div class="scroll"><table>
       <tr><th>Encoder</th><th>Value</th><th>Range</th></tr>
-      <tr><td><b>1 MICRO</b></td><td>micro timing; the same value as step + Left / Right</td><td>half a step early to half a step late</td></tr>
+      <tr><td><b>1 MICRO</b></td><td>micro timing; the same value as step + Left / Right</td><td>-23/384 to +23/384 of a whole note, a tick at a time; a 16th note is 24/384</td></tr>
       <tr><td><b>2 RATCH</b></td><td>hits spread over the step</td><td>1 to 8</td></tr>
       <tr><td><b>3 CHANCE</b></td><td>probability the step plays</td><td>1 to 100%</td></tr>
       <tr><td><b>4 COND</b></td><td>when the step plays</td><td>none, 1:2 to 8:8, FILL, !FILL, PRE, !PRE, NEI, !NEI, 1ST, !1ST</td></tr>
       <tr><td><b>5 FUNC</b></td><td>a step function, run when the step plays</td><td>RESTART, REVERSE, FORWARD, FLIP, RANDOM, RND FN, LEAP, JUMP, JUMP PG, REPEAT</td></tr>
       <tr><td><b>6 AMOUNT</b></td><td>the function's number</td><td>up to 32: LEAP -32 to +32, JUMP a step, JUMP PG a page, REPEAT 1 to 32 more plays</td></tr>
-      <tr><td><b>7 LENGTH</b></td><td>note length; the same value as step + wheel</td><td>1/8 of a step to 64 steps, or held to the next note</td></tr>
+      <tr><td><b>7 LENGTH</b></td><td>note length; the same value as a step held + the wheel turned, which works on every page and in every device, and as a step held + a later step pressed, which sets it by span</td><td>1/8 of a step to 64 steps, or held to the next note</td></tr>
       <tr><td><b>8 SLIDE</b></td><td>glide into the next note</td><td>off, on</td></tr>
+    </table></div>
+    <h3>Not on an encoder: the Volume knob</h3>
+    <p class="mute">Velocity and track level are not TRIG values. They are always under the Volume knob, whatever page is showing.</p>
+    <div class="scroll"><table>
+      <tr><th>Hold</th><th>Turn Volume</th><th>Where</th></tr>
+      <tr><td><b>A step</b></td><td>that step's velocity; several steps held: all of them</td><td>Note Mode, on any page</td></tr>
+      <tr><td><b>A track button</b></td><td>that track's level</td><td>Note Mode, either bank</td></tr>
+      <tr><td><b>A track's odd step</b></td><td>that track's level</td><td>Session Mode, all eight tracks</td></tr>
+      <tr><td><b>A page</b> in Loop Mode</td><td>the velocity of every note on that page</td><td>Loop Mode</td></tr>
+      <tr><td><b>Nothing</b></td><td>the master level</td><td>everywhere</td></tr>
     </table></div>
   </div>
 

@@ -1,6 +1,6 @@
 # Feverdream: UI/UX design
 
-Draft 28, 24 November 2026. Status: proposal for review. Nothing here is built yet.
+Draft 33, 24 November 2026. Status: proposal for review. Nothing here is built yet.
 
 Feverdream is a standalone groovebox for Ableton Move. It runs in place of Move's own software, as EvilGenius and
 RemoteFM1 do. This document describes how it is played: what every control does, what the screen and LEDs say, and how
@@ -148,8 +148,8 @@ Move swaps a synth for a Melodic Sampler when you sample into it [15.3]. Undo br
 The Move's screen is 128 x 64 dots on a panel about three centimetres wide. Small text on it is hard to read, so
 Feverdream does not rely on any. Three rules govern every screen.
 
-1. **Pictures at rest, words on touch.** With nothing touched, the screen is a picture: the chain as icons, a page as
-   eight pictograms, the clips as a grid. Words appear when a control is touched or turned, and they are about that
+1. **Pictures at rest, words on touch.** With nothing touched, the screen is a picture: the track's macros at
+   the chain, a page as eight pictograms, the clips as a grid. Words appear when a control is touched or turned, and they are about that
    control.
 2. **One thing, full screen.** Whatever is being touched or changed takes the whole screen: its name large, its
    value larger. There are no dense pages, no boxes inside boxes and no status line of small print.
@@ -161,13 +161,13 @@ Feverdream does not rely on any. Three rules govern every screen.
 
 | Part | Is |
 |---|---|
-| The picture | what this place is: the chain's icons, a device's theme, a page's eight pictograms, the clip grid |
+| The page marks | along the top edge: where you are in this mode. A mark a page, the current one thick; at the chain a small box a device, the current one filled |
+| The picture | what this place is: the track's macros at the chain, a device's theme, a page's eight pictograms, the clip grid |
 | One large line | the name of what the wheel is on, with the track's number in a box at its left |
-| The strip | a thin line of segments, the current one thick: where you are in a row of pages or devices |
 | The steps row | the 16 steps of the page shown, as marks: Move's loop bars [12.1] and RemoteFM1's steps row together |
 | The corner | at the top right, one symbol when a state is latched: Shift, Loop, Fill, Record, the map row |
 
-![The chain at rest](img/note-device-view.png) ![A device page at rest](img/param-page.png)
+![The chain at rest, then the wheel turned](img/note-device-view.png) ![A device page at rest](img/param-page.png)
 
 **The touch views** replace the rest view while a control is touched and for a second after:
 
@@ -299,6 +299,9 @@ EvilGenius on the Move chooses its pages on a **belt**: each page is a box of pi
 chosen one large in the middle, its name under the belt, the wheel moving it a box at a time. Feverdream takes the
 belt as its one picture for choosing among kinds of thing.
 
+- **The belt shows only while the wheel turns.** It comes up at the first click of a turn and goes a second after
+  the last. At rest there is no belt on the screen: the mode's own picture is there, and the **page marks** along
+  the top edge say where the wheel is. A touch of the wheel with no turn gives the place in words, as before.
 - **The belt moves; the choice stays in the middle.** A turn of the wheel slides the belt one box, on a spring, in
   under a fifth of a second. The eye never has to follow a cursor across the screen.
 - **A box is pixel art, not a word.** Each kind has its own small picture; the chosen box is large enough to read
@@ -307,7 +310,8 @@ belt as its one picture for choosing among kinds of thing.
 - **A box that is a device or a kind is entered with a press**, and until then the encoders keep their job, as in
   EvilGenius. **A box that is a page is live as it reaches the middle**, as a page inside a device is. Session
   Mode's belt has both (section 8.2).
-- The strip under the name shows how long the belt is and where the choice is on it.
+- The page marks say how long the belt is and where the choice is on it, with the belt up or not: one mark a box,
+  in the belt's order.
 - With Reduce Motion the belt jumps a box with no slide.
 
 Where the belt is used:
@@ -325,7 +329,7 @@ Where the belt is used:
 A belt is for a handful of kinds that each deserve a picture. Things with names and no pictures, such as presets,
 samples and projects' options, stay lists (section 6.2).
 
-![The chain as a belt](img/note-device-view.png) ![A picker belt](img/belt-pick.png)
+![The chain's belt](img/chain-belt.png) ![A picker belt](img/belt-pick.png)
 
 ## 4. Eight tracks on four buttons
 
@@ -387,8 +391,10 @@ Export [New]. Rename uses Move's wheel keyboard from the Wi-Fi password screen [
 
 ## 6. Note Mode: devices
 
-A track is a chain of devices, as a track in Live is. On the screen the chain is a belt (section 3.5): the devices
-ride it in signal order into MIX. Move's Device View shows a track's devices as a row of icons in
+A track is a chain of devices, as a track in Live is. When the wheel turns, the chain is a belt (section 3.5): the
+devices ride it in signal order into MIX. At rest the screen shows the track's eight macros, which are what the
+encoders turn at the chain, with the page marks along the top, a box a device, and the name of the device under
+the wheel. Move's Device View shows a track's devices as a row of icons in
 signal order, and the wheel moves along it [7.1]. Feverdream keeps that view and opens the chain up: devices can be
 added, removed, swapped and put in a different order, and the track has macros over all of them.
 
@@ -455,7 +461,7 @@ leaves it.
 | **An encoder touched + wheel press** | that parameter's options: Map to Macro, Delete Automation, Reset | [New] |
 | Left / Right, Plus / Minus, the pads, the steps | as at the chain: entering a device changes only the wheel and the encoders | |
 
-The picture says which level this is: a row of icons at the chain, eight pictograms inside a device. A touch of
+The page marks say which level this is: small boxes at the chain, a square and thin segments inside a device. A touch of
 the wheel says it in words.
 Selecting a track returns to the chain, with the wheel on the device last entered.
 
@@ -466,15 +472,15 @@ after its main page; a delay might need no more than its main page; the sequence
 
 - The wheel turns the pages. On arriving, the page's name shows large for a moment (`FILTER`), then its eight
   parameters. With Speech on it is said: `Drift, Filter, page 3 of 6`.
-- At rest the page is its eight pictograms with its name large over them. A strip has a segment for each page, the
-  current one thick, so the length of the walk is always visible. A touch of the wheel gives the device, the page
+- At rest the page is its eight pictograms with its name large under them. The page marks along the top have a
+  segment for each page, the current one thick, so the length of the walk is always visible. A touch of the wheel gives the device, the page
   and the count in words (`DRIFT`, `FILTER 3/6`).
 - A device opens on its main page the first time, and after that on the page it was last left on.
 - A page may use fewer than eight encoders. The ones with no job are dark and dead (rules R3 and R4).
 - Related things share a column across pages where they can, so a hand finds them: level on encoder 8, for
   instance, on every oscillator page.
 - A press on any page lists the pages by name, for a device with many; the wheel picks one and a press goes there.
-- The strip's first mark is the device's front item, drawn as a square, not a segment, so it is never mistaken for
+- The first page mark is the device's front item, drawn as a square, not a segment, so it is never mistaken for
   a page of parameters.
 - A lock, an automation lane or a macro points at a parameter, not at a place on a page, so pages can be rearranged
   in a later version without breaking a project.
@@ -897,10 +903,10 @@ Everything Move does with a held step still happens [11]. The screen shows a **s
 | While a step is held | Does | |
 |---|---|---|
 | Volume | velocity | [M] |
-| Wheel turn | note length, a tenth of a step per click; Shift: whole steps | [M+] |
-| **A later step** | stretch the notes to end there; the same step again: back to one step | [New, RemoteFM1] |
+| **Wheel turn** | note length, two ticks a click, a twelfth of a step, as in RemoteFM1; Shift: whole steps. Always: at the chain, inside any device, on any page, with TRIG showing or not. With a step held the wheel never turns pages or walks the chain | [M+, the owner's] |
+| **A later step** | set the notes' length by span, as in RemoteFM1. The span is the steps from the held one to the pressed one, both counted: step 1 held and step 4 pressed makes the notes 4 steps long. It toggles: if the notes already last that span, the press puts them back to 1 step, so step 1 + step 2 again and again goes 2, 1, 2. The LENGTH popup shows it at the press. In triplet feel the span counts live steps only | [RemoteFM1] |
 | Plus / Minus | transpose a semitone; held, or with Shift: an octave | [M+] |
-| Left / Right | nudge a tenth of a step; Shift: a hundredth; held: a whole step | [M] |
+| Left / Right | nudge by 1/384 of a whole note, the TRIG page's MICRO, from -23/384 to +23/384; Shift: six at a time, a quarter of a 16th; held: a whole step | [M+] |
 | A pad | add or remove that note, up to eight on a step | [M] |
 | An encoder | lock what that encoder shows on this step: a macro at the chain, a parameter inside a device | [M, 14.2.4] |
 | **Wheel press** | the encoders go to the TRIG page, and stay there when the step is let go. A step held and the wheel pressed again: back to the page it came from | [New] |
@@ -931,13 +937,13 @@ defaults for steps entered next. With a step held, they set that step. This is t
 
 | Encoder | Value | Range |
 |---|---|---|
-| 1 MICRO | micro timing; the same value as step + Left / Right | half a step early to half a step late |
+| 1 MICRO | micro timing; the same value as step + Left / Right | -23/384 to +23/384 of a whole note, in steps of 1/384. A 16th note is 24/384, so it reaches one tick short of a whole step, early or late |
 | 2 RATCH | ratchets: hits spread over the step | 1-8 |
 | 3 CHANCE | probability the step plays | 1-100% |
 | 4 COND | when the step plays | none, 1:2 to 8:8, FILL, !FILL, PRE, !PRE, NEI, !NEI, 1ST, !1ST |
 | 5 FUNC | a step function, run when the step plays | none, RESTART, REVERSE, FORWARD, FLIP, RANDOM, RND FN, LEAP, JUMP, JUMP PG, REPEAT |
 | 6 AMOUNT | the function's number, up to 32, so it reaches across two pages | LEAP: steps to leap, -32 to +32. JUMP: the step to go to, 1-32, counted from the loop's start. JUMP PG: the page to go to, 1-16. REPEAT: how many more times the step plays, 1-32 |
-| 7 LENGTH | note length by the table; the same value as step + wheel | 1/8 of a step to 64 steps, or held until the next note |
+| 7 LENGTH | note length by the table; the same value as step + wheel, which is always there whatever page is showing, and as a step held + a later step | 1/8 of a step to 64 steps, or held until the next note |
 | 8 SLIDE | glide into the next note | off, on |
 
 **Functions** act on the track's playhead, not on the note. RESTART goes back to the loop's start. REVERSE and
@@ -952,7 +958,10 @@ screen's corner shows the Fill symbol, and a diagonal in the track colour runs a
 
 COND and FUNC are lists: the encoder moves one item for every few clicks, so an item is not passed by accident.
 
-The second page holds velocity (the same value as step + Volume) and the ramp of a ratchet's velocities. The third
+**Velocity and track level are on the Volume knob, not on the TRIG page.** A step held and Volume turned is that
+step's velocity, on any page. A track button held and Volume turned is that track's level (section 4); in Session
+Mode the track's odd step does the same (section 8.1). These are Move's own shortcuts and they always work. The
+second page of SEQ shows velocity as a value too, with the ramp of a ratchet's velocities. The third
 page holds the clip's own settings (section 7.5).
 
 Trig values are stored as locks on the step. Copy, cut, paste, Double Loop and Undo therefore carry them with no
@@ -1185,10 +1194,11 @@ In Session Mode the eight encoders are the eight tracks, each above its column o
 | SEND A | each track's send to A |
 | SEND B | each track's send to B |
 
-**The wheel is a belt** (section 3.5). Touching or turning it shows Session Mode's belt: these five pages as
+**The wheel is a belt** (section 3.5). Turning it shows Session Mode's belt: these five pages as
 boxes, then the buses' effects (section 8.3), riding into OUT at the right. The box in the middle is large, with
 its name under the belt. A page is live as it reaches the middle, with no press, as a page inside a device is: the
-encoders are its eight values at once. When the wheel is let go the screen goes back to that page's picture.
+encoders are its eight values at once. A second after the last click the belt goes and the screen is that page's picture again, with the page marks
+along the top showing which of the belt's boxes it is.
 
 ![Session Mode's belt](img/belt-session.png)
 
@@ -1330,7 +1340,7 @@ shows its value: an envelope bends, a square wave narrows, dots scatter. A page 
 reads as text.
 
 **From RemoteFM1 and Melodee: restraint.** Symbols at rest, words only while something is touched or turned. One
-subject on the screen at a time. The one number that matters is the largest thing there. A strip at the bottom says
+subject on the screen at a time. The one number that matters is the largest thing there. Page marks along the top say
 where you are in a row of pages: thin segments, the current one thick. Any screen that is not home ends with a line
 saying what a press and Back will do (`Press: Keep   Back: Up`). A question that can lose work says whether Undo can
 bring it back.
@@ -1461,6 +1471,8 @@ Decided:
 - **Loop Mode works exactly as RemoteFM1's page edit** (24 November 2026, the owner's): a tap shows a page, two
   pages held make the loop, a double click loops one page, the wheel sets the length, Right offers new pages. The
   one addition is the row of speed pads (section 7.4).
+- **The belt shows only while the wheel turns** (24 November 2026, the owner's). At rest each mode shows its own
+  picture, with page marks along the top edge for where the wheel is (sections 3.1, 3.5).
 - **Step + wheel press goes to TRIG and back** (24 November 2026, the owner's): TRIG stays when the step is let
   go; a step held and the wheel pressed again returns to the page it came from (section 7.2).
 - **Stop all clips: a double click on a track button in Session Mode** (24 November 2026, the owner's), the

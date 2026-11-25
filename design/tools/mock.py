@@ -85,7 +85,8 @@ def base_note(trk=2, steps="n...n..%n.k.c.n.", playstep=6):
             "with no note. Green: the playhead [M + locks]." % (i + 1),
             click="Add the held pads' notes, or clear the step [M]",
             hold="The step card; Volume velocity, wheel length, Plus / Minus pitch, arrows nudge, encoders lock [M]. "
-            "A later step: stretch the notes to it [RemoteFM1]. Wheel press: the TRIG page for this step [New]",
+            "A later step: the notes last the span from this step to that one; again: back to 1 step [RemoteFM1]. "
+            "Wheel press: to the TRIG page and back [New]",
             shift=SHIFT_NAMES[i])
     for i in range(1, 17):
         put(c, "stepicon-%d" % i, 0, description="Dark: the step above is a step, a track, a page or a length "
@@ -514,7 +515,7 @@ def board(shots):
     items.append({"type": "group", "id": uid(), "x": -60, "y": y - 80, "w": 3 * (LW + GAP) + 8, "h": 1000,
                   "title": "5 · Screen rules: pictures at rest, one thing full screen, big type, told on touch",
                   "color": "#d36cff"})
-    extra = ["belt-pick", "belt-session","param-page", "param-touch", "wheel-touch", "hint-copy", "toast", "browser", "preset-sheet",
+    extra = ["chain-belt", "belt-pick", "belt-session","param-page", "param-touch", "wheel-touch", "hint-copy", "toast", "browser", "preset-sheet",
              "projects", "device-main", "view-scene", "view-scope", "view-scope8", "view-tracks"]
     names = {k: (n, d) for k, n, _, d in SCREENS}
     for i, k in enumerate(extra):
