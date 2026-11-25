@@ -4107,112 +4107,112 @@
     },
     "pad-1-7": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's feel [New, the owner's]. Blue; the current one white. Triplet uses three steps of every four: the fourth of each group is dark and dead.",
+      "click": "Set the feel to straight",
       "hold": "",
-      "label": ""
+      "label": "Straight"
      },
      "led": {
-      "color": null
+      "color": "#ffffff"
      }
     },
     "pad-1-8": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's feel [New, the owner's]. Blue; the current one white. Triplet uses three steps of every four: the fourth of each group is dark and dead.",
+      "click": "Set the feel to triplet",
       "hold": "",
-      "label": ""
+      "label": "Triplet"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-2-1": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 1/16X",
       "hold": "",
-      "label": ""
+      "label": "1/16X"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-2-2": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 1/8X",
       "hold": "",
-      "label": ""
+      "label": "1/8X"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-2-3": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 1/4X",
       "hold": "",
-      "label": ""
+      "label": "1/4X"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-2-4": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 1/2X",
       "hold": "",
-      "label": ""
+      "label": "1/2X"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-2-5": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 3/4X",
       "hold": "",
-      "label": ""
+      "label": "3/4X"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-2-6": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 1X",
       "hold": "",
-      "label": ""
+      "label": "1X"
      },
      "led": {
-      "color": null
+      "color": "#ffffff"
      }
     },
     "pad-2-7": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 3/2X",
       "hold": "",
-      "label": ""
+      "label": "3/2X"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-2-8": {
      "meta": {
-      "function": "Dark and dead in Loop Mode (rule R3: the layer uses some pads, so it takes them all).",
-      "click": "",
+      "function": "The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note a step, 2X a 32nd, 1/16X a bar.",
+      "click": "Set the speed to 2X",
       "hold": "",
-      "label": ""
+      "label": "2X"
      },
      "led": {
-      "color": null
+      "color": "#2060ff"
      }
     },
     "pad-3-1": {

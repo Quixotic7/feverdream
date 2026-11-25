@@ -217,7 +217,18 @@ def lay_loop():
     for r in range(1, 5):
         for k in range(1, 9):
             n = (r - 3) * 8 + k                          # rows 3 and 4: steps 1-8 and 9-16 of the last page
-            if r < 3:
+            if r == 2:
+                sp = ["1/16X", "1/8X", "1/4X", "1/2X", "3/4X", "1X", "3/2X", "2X"][k - 1]
+                put(c, "pad-%d-%d" % (r, k), WHITE if sp == "1X" else BLUE, label=sp,
+                    function="The clip's speed [New, the owner's]. Blue; the current one white. 1X is a 16th note "
+                    "a step, 2X a 32nd, 1/16X a bar.", click="Set the speed to %s" % sp, hold="")
+            elif r == 1 and k >= 7:
+                fl = ["Straight", "Triplet"][k - 7]
+                put(c, "pad-%d-%d" % (r, k), WHITE if k == 7 else BLUE, label=fl,
+                    function="The clip's feel [New, the owner's]. Blue; the current one white. Triplet uses three "
+                    "steps of every four: the fourth of each group is dark and dead.",
+                    click="Set the feel to %s" % fl.lower(), hold="")
+            elif r < 3:
                 put(c, "pad-%d-%d" % (r, k), OFF, label="", function="Dark and dead in Loop Mode (rule R3: the "
                     "layer uses some pads, so it takes them all).", click="", hold="")
             else:

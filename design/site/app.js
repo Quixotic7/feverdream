@@ -127,7 +127,7 @@
     rung('Track', [26, 26, 18, 18, 14, 14, 34, 16, 16, 20].map((w, i) => bar(w, i === 6 ? 46 : 30, i === 6 ? FD.track[2] : null)),
       'A chain of devices with macros over it, and sixteen clips, four on the pads at a time.'),
     rung('Clip', Array.from({ length: 16 }, (_, i) => bar(16, 24, i < 4 ? FD.track[2] : null)),
-      'Up to sixteen pages, any length from 1 to 256 steps, and its own rate: 1/64 to 4 bars, straight, dotted or triplet.'),
+      'Up to sixteen pages, any length from 1 to 256 steps, and its own speed: 1/16X, a bar a step, to 2X, a 32nd note a step.'),
     rung('Page', Array.from({ length: 16 }, (_, i) => bar(8, [0, 4, 8, 10, 14].includes(i) ? 40 : 14, [0, 4, 8, 10, 14].includes(i) ? '#f4f6f8' : null)),
       'Sixteen steps on the step buttons. Left and Right turn the pages.'),
     rung('Step', [bar(60, 12, '#f4f6f8'), bar(40, 12, FD.track[2]), bar(26, 12, '#ff9000')],
@@ -517,7 +517,7 @@
     const M = [
       ['Projects', 'M', 'Set Overview, as on Move: 32 projects on the pads.'],
       ['Setup', 'M+', 'Speech (Off, On, Jog) first, then Wi-Fi, Feverdream Manager, MIDI, brightness, about, Exit to Move.'],
-      ['Workflow Settings', 'M+', 'Quantize, Step Grid (rate), Count-In, Autoload, Launch Quantize, Record Mode, Page Follow.'],
+      ['Workflow Settings', 'M+', 'Quantize, Step Grid, Count-In, Autoload, Launch Quantize, Record Mode, Page Follow.'],
       ['Track Setup', 'New', 'The cylinder, read as the body of the track: type, name, colour, MIDI channel, voices, output. Ableton has not said what this icon is for.'],
       ['Tempo', 'M+', 'The wheel sets it, Shift for fine, a press confirms. Each further press of Step 5 is a tap of the tempo.'],
       ['Metronome', 'M', 'As on Move.'],
@@ -549,68 +549,199 @@
 
   /* ------------------------------------------------------------ sequencing */
   (function lengthDemo() {
-    let pages = 4, last = 5;
-    const RATES = [['1/64', 1 / 64], ['1/32', 1 / 32], ['1/16', 1 / 16], ['1/8', 1 / 8], ['1/4', 1 / 4], ['1/2', 1 / 2], ['1 bar', 1], ['2 bars', 2], ['4 bars', 4]];
-    const pb = Array.from({ length: 16 }, (_, i) => el('button', { type: 'button', 'aria-label': (i + 1) + ' pages', onclick: () => { pages = i + 1; draw(); } }, String(i + 1)));
-    const lb = Array.from({ length: 16 }, (_, i) => el('button', { type: 'button', 'aria-label': 'last page ends after ' + (i + 1) + ' steps', onclick: () => { last = i + 1; draw(); } }, String(i + 1)));
-    $('pgsteps').append(...pb); $('lastpads').append(...lb);
-    const rate = $('rate');
-    RATES.forEach(([n], i) => rate.append(el('option', { value: i }, n)));
-    rate.value = 2; rate.onchange = draw;
-    function draw() {
-      pb.forEach((b, i) => { b.className = i + 1 === pages ? 'head' : i < pages ? 'lit' : ''; });
-      lb.forEach((b, i) => { b.className = i + 1 === last ? 'head' : i < last ? 'lit' : ''; });
-      const full = pages - 1, steps = full * 16 + last;
-      $('lenout').textContent = last === 16 ? `${pages} Page${pages > 1 ? 's' : ''}` : full === 0 ? `${last} Step${last > 1 ? 's' : ''}` : `${full} Page${full > 1 ? 's' : ''} + ${last}`;
-      const bars = steps * RATES[rate.value][1];
-      $('lensub').textContent = `${steps} steps. At ${RATES[rate.value][0]} a step, straight, that is ${+bars.toFixed(3)} bar${bars === 1 ? '' : 's'}. Another track at another rate runs against it.`;
+    /* Loop Mode exactly as RemoteFM1's page edit (its README, "Pages and the loop"): a tap shows a page, past the
+       clip's end too; two pages held make the loop (Shift stands in for the hold) and the page shown moves into it;
+       a double tap within 400 ms loops that page alone; the wheel sets the length a step a click, Shift a page;
+       Right past the clip offers ghost pages, and pressing a ghost reached with Right confirms the new pages. */
+    let pages, len, la, shown, play, ghostR, held = -1, lastClick = { i: -1, t: 0 };
+    const RATES = [['1/16X', 1, '1 bar'], ['1/8X', 1 / 2, 'half a bar'], ['1/4X', 1 / 4, 'a quarter note'], ['1/2X', 1 / 8, 'an eighth note'], ['3/4X', 1 / 12, 'an eighth-note triplet'], ['1X', 1 / 16, 'a 16th note'], ['3/2X', 1 / 24, 'a 16th-note triplet'], ['2X', 1 / 32, 'a 32nd note']];
+    let has = new Set();                 // pages with steps on them
+    const reset = () => { pages = 4; la = 0; len = 53; shown = 0; play = 0; ghostR = false; held = -1; has = new Set([0, 1]); };
+    reset();
+    const end = () => la + Math.ceil(len / 16) - 1;               // the loop's last page
+    const lastLen = () => ((len - 1) % 16) + 1;                   // steps in that page
+    const fit = () => { pages = Math.max(pages, end() + 1); if (play < la || play > end()) play = la; };
+    addEventListener('keyup', (e) => { if (e.key === 'Shift' && held >= 0) { held = -1; draw(); } });
+    addEventListener('blur', () => { held = -1; });
+    function press(i, ev) {
+      const now = performance.now(), dbl = lastClick.i === i && now - lastClick.t < 400;
+      lastClick = dbl ? { i: -1, t: 0 } : { i, t: now };
+      if (ev.shiftKey && held >= 0 && held !== i) {
+        la = Math.min(held, i); len = (Math.abs(held - i) + 1) * 16; fit();
+        if (shown < la || shown > end()) shown = la;
+        ghostR = false; say(`Pages ${held + 1} and ${i + 1} held: the loop is pages ${la + 1} to ${end() + 1}.`);
+      } else if (dbl) {
+        la = i; len = 16; shown = i; fit(); play = i; ghostR = false; say(`Double click: the loop is page ${i + 1} alone.`);
+      } else if (ghostR && i === shown && i >= pages) {
+        pages = i + 1; ghostR = false; say(`New pages confirmed: the clip reaches page ${pages}. The loop is unchanged.`);
+      } else {
+        shown = i; ghostR = false;
+        if (ev.shiftKey) { held = i; say(`Page ${i + 1} held. Keep Shift down and click another page.`); }
+        else say(`Page ${i + 1} shown` + (i >= pages ? ', past the clip. A tap only shows it.' : '. The loop is unchanged.'));
+      }
+      draw();
     }
+    const pb = Array.from({ length: 16 }, (_, i) => el('button', { type: 'button', onclick: (ev) => press(i, ev) }, String(i + 1)));
+    const lb = Array.from({ length: 16 }, (_, i) => el('button', { type: 'button', 'aria-label': 'the loop\'s last page ends after ' + (i + 1) + ' steps', onclick: () => { len = (end() - la) * 16 + i + 1; say(`The loop's last page ends after ${i + 1} step${i ? 's' : ''}.`); draw(); } }, String(i + 1)));
+    $('pgsteps').append(...pb); $('lastpads').append(...lb);
+    $('pg-left').onclick = () => { if (shown > 0) { shown--; ghostR = shown >= pages; say(`Page ${shown + 1} shown.`); } else say('The first page. Left does not wrap.'); draw(); };
+    $('pg-right').onclick = () => {
+      if (shown >= 15) say('Sixteen pages is the most a clip holds.');
+      else { shown++; ghostR = shown >= pages; say(ghostR ? `Page ${shown + 1}: the clip does not have it yet. Press its key to confirm it; leaving adds nothing.` : `Page ${shown + 1} shown.`); }
+      draw();
+    };
+    const wheel = (d, ev) => { const by = ev.shiftKey ? 16 : 1; len = Math.max(1, Math.min((16 - la) * 16, len + d * by)); fit(); say(`Wheel: the loop is ${len} steps` + (ev.shiftKey ? ', a page a click with Shift.' : ', a step a click. Shift: a page.')); draw(); };
+    $('pg-wdn').onclick = (ev) => wheel(-1, ev); $('pg-wup').onclick = (ev) => wheel(1, ev);
+    $('pg-whole').onclick = () => {                              // Back + Loop: trim the loop to the pages with steps
+      if (!has.size) return say('No page has steps, so there is nothing to trim to. The loop is unchanged.'), draw();
+      const a = Math.min(...has), b = Math.max(...has);
+      la = a; len = (b - a + 1) * 16; fit(); if (shown < la || shown > end()) shown = la; ghostR = false;
+      say(a === b ? `Trimmed: only page ${a + 1} has steps, so the loop is page ${a + 1}.` : `Trimmed to the pages with steps: the loop is pages ${a + 1} to ${b + 1}.`); draw();
+    };
+    $('pg-has').onclick = () => { if (has.has(shown)) { has.delete(shown); say(`Page ${shown + 1}: steps cleared.`); } else { has.add(shown); pages = Math.max(pages, shown + 1); ghostR = false; say(`Page ${shown + 1} has steps now.`); } draw(); };
+    $('pg-reset').onclick = () => { reset(); say(''); draw(); };
+    let speed = 5;
+    let feel = 0;
+    const fb = ['', '', '', '', '', '', 'STRAIGHT', 'TRIPLET'].map((n, i) => el('button', n ? { type: 'button', onclick: () => { feel = i - 6; say(i > 6 ? 'Feel: triplet. Three steps of every four; the fourth is dark and dead.' : 'Feel: straight. All sixteen steps of a page play.'); draw(); } } : { type: 'button', disabled: '', 'aria-label': 'Dark and dead' }, n ? (i > 6 ? 'TRIP' : 'STR') : ''));
+    $('feelpads').append(...fb);
+    const sb = RATES.map(([n, , w], i) => el('button', { type: 'button', onclick: () => { speed = i; say(`Speed ${n}: a step lasts ${w}.`); draw(); } }, n));
+    $('speedpads').append(...sb);
+    function say(s) { $('pgkey').textContent = s; }
+    function draw() {
+      const e = end(), ll = lastLen();
+      pb.forEach((b, i) => {
+        const real = i < pages, inLoop = i >= la && i <= e, g = ghostR && i === shown && !real;
+        b.className = [g ? 'new' : i === shown ? 'head' : inLoop ? 'lit' : real ? 'dim' : '', i === play ? 'play' : '', i === held ? 'fn' : '', has.has(i) ? 'has' : ''].join(' ').trim();
+        b.textContent = g ? '+' : String(i + 1);
+        b.setAttribute('aria-label', 'Page ' + (i + 1) + (g ? ', new, not confirmed' : (i === shown ? ', shown' : '') + (inLoop ? ', in the loop' : real ? ', in the clip, outside the loop' : ', past the clip') + (i === play ? ', playing' : '') + (i === held ? ', held' : '') + (has.has(i) ? ', has steps' : ', empty')));
+      });
+      $('pg-has').textContent = has.has(shown) ? `Clear page ${shown + 1}'s steps` : `Put steps on page ${shown + 1}`;
+      lb.forEach((b, i) => { b.className = (i + 1 === ll ? 'head' : i < ll ? 'lit' : '') + (feel && i % 4 === 3 ? ' dead' : ''); });
+      fb.forEach((b, i) => { if (i > 5) { b.className = i - 6 === feel ? 'head' : 'blue'; b.setAttribute('aria-label', 'Feel: ' + (i > 6 ? 'triplet' : 'straight') + (i - 6 === feel ? ', current' : '')); } });
+      sb.forEach((b, i) => { b.className = i === speed ? 'head' : 'blue'; b.setAttribute('aria-label', 'Speed ' + RATES[i][0] + ', a step lasts ' + RATES[i][2] + (i === speed ? ', current' : '')); });
+      const full = Math.floor(len / 16), rest = len % 16;
+      $('lenout').textContent = (la === e ? `Bar ${la + 1}` : `Bars ${la + 1}-${e + 1}`) + ' · ' + (full === 0 ? `${rest} Step${rest > 1 ? 's' : ''}` : `${full} Bar${full > 1 ? 's' : ''}` + (rest ? ` +${rest}` : ''));
+      const bars = len * RATES[speed][1], live = feel ? len - Math.floor(len / 4) : len;
+      $('lensub').textContent = `The loop is ${len} steps` + (feel ? `, ${live} of them live in triplet feel, each a third longer` : '') + `: at ${RATES[speed][0]}, ${feel ? 'four steps in the time of ' + (speed === 5 ? 'a quarter note' : 'four ' + RATES[speed][2].replace(/^an? /, '') + 's') : RATES[speed][2] + ' a step'}, that is ${+bars.toFixed(3)} bar${bars === 1 ? '' : 's'} of the song. The clip has ${pages} page${pages > 1 ? 's' : ''}. White: shown. Filled: in the loop. Outlined: the clip's other pages. Plain: past the clip. Ringed: playing. Dot: has steps.`;
+    }
+    setInterval(() => { play = play >= end() || play < la ? la : play + 1; draw(); }, 900);
     draw();
   })();
 
   let fnFrame = () => {};
   (function fnDemo() {
+    /* Each function is drawn, not only told: an arrow from the function's step to where the playhead goes, the
+       steps that never play struck out, a loop over the step a REPEAT holds, and a trail behind the playhead. */
+    let N = 32, FN = 8;                                     // the loop's length in steps, and the step with the function
     const F = {
-      RESTART: "Back to the loop's start. Steps 10 to 16 never play.",
-      REVERSE: 'The direction is set to backwards, and stays so.',
-      FORWARD: 'The direction is set to forwards. Here the track starts out running backwards.',
-      FLIP: 'The direction turns round each time the step plays.',
-      RANDOM: 'The playhead jumps to a random step.',
-      'RND FN': 'A random one of the other functions, each time.',
-      LEAP: 'The playhead skips the amount of steps.',
-      JUMP: 'The playhead goes to the step named by the amount.',
-      REPEAT: 'The step plays again on the next few steps, as if copied there, skipping what is under them.' };
-    const sel = $('fn'), amt = $('amt'), cells = Array.from({ length: 16 }, (_, i) => el('i', {}, String(i + 1)));
+      RESTART: "Back to the loop's start. The steps after it never play.",
+      REVERSE: 'The direction is set to backwards, and stays so. Every step still plays, the other way round.',
+      FORWARD: 'The direction is set to forwards. Here the track starts out running backwards, from the last step.',
+      FLIP: 'The direction turns round each time the step plays, so the playhead bounces off it.',
+      RANDOM: 'The playhead jumps to a random step. The dashed arrows are four it might pick; the solid one is the last it did.',
+      'RND FN': 'A random one of the other functions, each time. The arrow shows the one it just ran.',
+      LEAP: 'The playhead skips the amount of steps. The struck-out steps are the ones leapt over.',
+      JUMP: 'The playhead goes to the step named by the amount, counted from the start of the loop.',
+      'JUMP PG': 'The playhead goes to the start of the page named by the amount. A page past the loop wraps round to one inside it.',
+      REPEAT: 'The playhead stays on the step and plays it again, the amount of times, and only then moves on. Nothing is skipped: the track runs that many steps late.' };
+    const NS = 'http://www.w3.org/2000/svg';
+    const sel = $('fn'), amt = $('amt'), box = $('fnsteps'), len = $('fnlen');
+    let cells = [];
     Object.keys(F).forEach((k) => sel.append(el('option', {}, k)));
-    $('fnsteps').append(...cells);
-    let pos = 0, dir = 1, rep = 0, playing = false, acc = 0, lastT = 0;
-    const mod = (n) => ((n % 16) + 16) % 16;
-    function reset() { pos = sel.value === 'FORWARD' ? 15 : 0; dir = sel.value === 'FORWARD' ? -1 : 1; rep = 0; draw(); }
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'fnarcs'); svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = '<defs><marker id="fnah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>';
+    function build() {
+      cells = Array.from({ length: N }, (_, i) => el('button', { type: 'button', onclick: () => { FN = i; reset(); } }, String(i + 1)));
+      box.replaceChildren(...cells, svg);
+    }
+    let pos = 0, dir = 1, rep = 0, playing = false, acc = 0, lastT = 0, trail = [], landed = -1, ran = '', reps = 0;
+    const mod = (n) => ((n % N) + N) % N;
+    const pageOf = (a) => ((a - 1) % Math.ceil(N / 16)) * 16;
+    function reset() { pos = sel.value === 'FORWARD' ? N - 1 : 0; dir = sel.value === 'FORWARD' ? -1 : 1; rep = 0; reps = 0; trail = []; landed = -1; ran = ''; draw(); }
+    /* what the picture shows for a function f with amount a: arrows [from, to, dashed], steps never played, copies */
+    function plan(f, a) {
+      const p = { arcs: [], skip: [], copy: [], note: '' };
+      const range = (x, y) => { for (let i = x; i <= y; i++) p.skip.push(i); };
+      if (f === 'RESTART') { p.arcs.push([FN, 0]); range(FN + 1, N - 1); p.note = `Step ${FN + 1} to step 1, every time.`; }
+      else if (f === 'REVERSE') { p.arcs.push([FN, mod(FN - 1)]); p.note = `From step ${FN + 1} the playhead runs backwards, round to step ${N} and on down.`; }
+      else if (f === 'FORWARD') { p.arcs.push([FN, mod(FN + 1)]); p.note = `It comes down from step ${N} to step ${FN + 1}, then runs forwards.`; }
+      else if (f === 'FLIP') { p.arcs.push([FN, mod(FN + 1), 1], [FN, mod(FN - 1), 1]); p.note = `Forwards into step ${FN + 1} and it leaves backwards; backwards into it and it leaves forwards.`; }
+      else if (f === 'RANDOM') { [0.08, 0.4, 0.66, 0.9].map((k) => Math.floor(k * N)).filter((x, i, r) => x !== FN && r.indexOf(x) === i).forEach((x) => p.arcs.push([FN, x, 1])); p.note = `Any of the ${N} steps, a new one each time.`; }
+      else if (f === 'LEAP') { const to = mod(FN + a + 1); p.arcs.push([FN, to]); for (let i = 1; i <= a; i++) p.skip.push(mod(FN + i)); p.note = `Step ${FN + 1} leaps ${a} step${a > 1 ? 's' : ''} and lands on step ${to + 1}` + (FN + a + 1 >= N ? ', round the end of the loop.' : '.'); }
+      else if (f === 'JUMP' || f === 'JUMP PG') {
+        const to = f === 'JUMP' ? (mod(a - 1) === FN ? 0 : mod(a - 1)) : pageOf(a);
+        if (to !== FN) p.arcs.push([FN, to]); if (to > FN) range(FN + 1, to - 1); else range(FN + 1, N - 1);
+        p.note = f === 'JUMP' ? `Step ${FN + 1} jumps to step ${to + 1}.` + (mod(a - 1) === FN ? ' (A jump onto itself would stand still, so here it restarts.)' : a > N ? ` (Step ${a} is past the loop, so it wraps.)` : '')
+          : `Step ${FN + 1} jumps to page ${to / 16 + 1}, which starts at step ${to + 1}.`;
+      } else if (f === 'REPEAT') { p.arcs.push([FN, FN]); p.note = `Step ${FN + 1} plays, then ${a} more time${a > 1 ? 's' : ''} without the playhead moving, then step ${mod(FN + 1) + 1}.` + (rep > 0 || (pos === FN && reps > 0) ? ` Now: play ${reps + 1} of ${a + 1}.` : ''); }
+      else if (f === 'RND FN') p.note = ran ? 'It just ran ' + ran + '.' : 'Press Play: each pass it picks one and shows it.';
+      return p;
+    }
+    function arc(from, to, dashed, strong) {
+      if (from === to) {                                         // a loop over the step: it holds the playhead
+        const C = cells[from], cx = C.offsetLeft + C.offsetWidth / 2, y = C.offsetTop - 2, q = document.createElementNS(NS, 'path');
+        q.setAttribute('d', `M${cx - 5} ${y}C${cx - 18} ${y - 26} ${cx + 18} ${y - 26} ${cx + 5} ${y - 1}`);
+        q.setAttribute('class', 'fnarc'); q.setAttribute('marker-end', 'url(#fnah)'); svg.append(q); return;
+      }
+      const A = cells[from], B = cells[to], w = A.offsetWidth, h = A.offsetHeight;
+      const x1 = A.offsetLeft + w / 2, x2 = B.offsetLeft + w / 2, sameRow = A.offsetTop === B.offsetTop;
+      const y1 = A.offsetTop + (sameRow ? 0 : (B.offsetTop > A.offsetTop ? h : 0)), y2 = B.offsetTop + (sameRow ? 0 : (B.offsetTop > A.offsetTop ? 0 : h));
+      const lift = sameRow ? Math.min(30, 10 + Math.abs(x2 - x1) / 5) : 0;
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', sameRow ? `M${x1} ${y1 - 2}Q${(x1 + x2) / 2} ${y1 - 2 - lift * 2} ${x2} ${y2 - 3}` : `M${x1} ${y1}L${x2} ${y2}`);
+      p.setAttribute('class', 'fnarc' + (dashed ? ' dash' : '') + (strong ? ' strong' : ''));
+      p.setAttribute('marker-end', 'url(#fnah)');
+      svg.append(p);
+    }
     function draw() {
-      cells.forEach((c, i) => { c.className = i === pos ? 'head' : i === 8 ? 'fn' : ''; });
-      if (rep > 0) cells[pos].className = 'lit';
-      $('fntext').textContent = F[sel.value];
-      $('amtv').textContent = amt.value;
-      amt.disabled = !['LEAP', 'JUMP', 'REPEAT'].includes(sel.value);
+      const f = sel.value, a = +amt.value, show = f === 'RND FN' && ran ? ran : f, p = plan(show, a);
+      if (f === 'RND FN') p.note = plan('RND FN', a).note;
+      cells.forEach((c, i) => {
+        const t = trail.indexOf(i);
+        c.className = [i === pos ? 'head' : i === FN ? 'fn' : p.copy.includes(i) ? 'cp' : p.skip.includes(i) ? 'skip' : t >= 0 ? 'tr' + Math.min(3, t + 1) : '', i === landed && i !== pos ? 'tgt' : ''].join(' ').trim();
+        c.textContent = p.copy.includes(i) ? String(FN + 1) : String(i + 1);
+        c.setAttribute('aria-label', 'Step ' + (i + 1) + (i === FN ? ', has the function' : ', put the function here') + (i === pos ? ', playhead' : ''));
+      });
+      [...svg.querySelectorAll('path.fnarc')].forEach((x) => x.remove());
+      svg.setAttribute('viewBox', `0 0 ${box.clientWidth} ${box.clientHeight}`);
+      p.arcs.forEach(([x, y, d]) => arc(x, y, d, false));
+      if (landed >= 0 && (show === 'RANDOM')) arc(FN, landed, false, true);
+      $('fntext').textContent = F[f];
+      $('fnnote').textContent = p.note + (f === 'REVERSE' || f === 'FORWARD' || f === 'FLIP' || f === 'RND FN' ? ' Playhead now: ' + (dir > 0 ? 'forwards.' : 'backwards.') : '');
+      $('amtv').textContent = f === 'JUMP PG' ? 'page ' + (pageOf(a) / 16 + 1) : amt.value;
+      amt.disabled = !['LEAP', 'JUMP', 'JUMP PG', 'REPEAT', 'RND FN'].includes(f);
     }
     function step() {
       const a = +amt.value;
-      if (rep > 0) { rep--; pos = mod(pos + dir); return; }
-      if (pos === 8) {
+      trail.unshift(pos); trail.length = Math.min(trail.length, 3);
+      if (rep > 0) { rep--; reps++; return; }                   // REPEAT: the playhead holds its step
+      if (reps > 0) { reps = 0; pos = mod(pos + dir); return; }  // the repeats are done: move on, without running it again
+      if (pos === FN) {
         let f = sel.value;
-        if (f === 'RND FN') f = ['RESTART', 'REVERSE', 'FLIP', 'RANDOM', 'LEAP', 'JUMP'][Math.floor(Math.random() * 6)];
+        if (f === 'RND FN') { f = ['RESTART', 'REVERSE', 'FLIP', 'RANDOM', 'LEAP', 'JUMP', 'JUMP PG', 'REPEAT'][Math.floor(Math.random() * 8)]; ran = f; }
+        landed = -1;
         if (f === 'RESTART') { pos = 0; return; }
-        if (f === 'RANDOM') { pos = Math.floor(Math.random() * 16); return; }
-        if (f === 'JUMP') { pos = mod(a - 1 === 8 ? 0 : a - 1); return; }
+        if (f === 'RANDOM') { pos = Math.floor(Math.random() * N); landed = pos; return; }
+        if (f === 'JUMP') { pos = mod(a - 1) === FN ? 0 : mod(a - 1); return; }
+        if (f === 'JUMP PG') { pos = pageOf(a); return; }
         if (f === 'REVERSE') dir = -1; else if (f === 'FORWARD') dir = 1; else if (f === 'FLIP') dir = -dir;
-        else if (f === 'LEAP') { pos = mod(pos + dir * (a + 1)); return; } else if (f === 'REPEAT') rep = a;
+        else if (f === 'LEAP') { pos = mod(pos + dir * (a + 1)); return; } else if (f === 'REPEAT') { rep = a - 1; reps = 1; return; }
       }
       pos = mod(pos + dir);
     }
     sel.onchange = reset; amt.oninput = draw;
+    len.oninput = () => { N = +len.value; if (FN >= N) FN = N - 1; $('fnlenv').textContent = N + ' steps'; build(); reset(); };
+    addEventListener('resize', draw);
     $('fnplay').onclick = () => { playing = !playing; $('fnplay').setAttribute('aria-pressed', playing ? 'true' : 'false'); $('fnplay').textContent = playing ? 'Stop' : 'Play'; lastT = 0; };
-    fnFrame = (now) => { if (!playing || $('v-steps').hidden) return; if (!lastT) lastT = now; acc += now - lastT; lastT = now; if (acc > 230) { acc = 0; step(); draw(); } };
-    reset();
+    let seen = false;
+    fnFrame = (now) => {
+      if ($('v-steps').hidden) return;
+      if (!seen) { seen = true; draw(); }                       // first time the view has a size to draw arrows in
+      if (!playing) return;
+      if (!lastT) lastT = now; acc += now - lastT; lastT = now; if (acc > 230) { acc = 0; step(); draw(); }
+    };
+    build(); reset();
   })();
   $('stepsrow').append(oled('note-device-view'));
   $('copyshot').append(oled('hint-copy'));

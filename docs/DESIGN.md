@@ -1,6 +1,6 @@
 # Feverdream: UI/UX design
 
-Draft 19, 24 November 2026. Status: proposal for review. Nothing here is built yet.
+Draft 28, 24 November 2026. Status: proposal for review. Nothing here is built yet.
 
 Feverdream is a standalone groovebox for Ableton Move. It runs in place of Move's own software, as EvilGenius and
 RemoteFM1 do. This document describes how it is played: what every control does, what the screen and LEDs say, and how
@@ -122,7 +122,7 @@ Feverdream says *project* where Move says *Set*.
 | Track contents | instrument + 2 effects | a chain of devices, as in Live: pad layout, sequencer, MIDI effects, instrument, audio effects, mix strip; with macros over them |
 | Clips per track | 8 | 16 (four on the pads at a time) |
 | Clip length | up to 16 bars | up to 16 pages of 16 steps, or any number of steps from 1 to 256 |
-| Step timing | one step grid for the Set | a rate per clip: 1/4 to 1/64, straight, dotted or triplet |
+| Step timing | one step grid for the Set | a speed per clip, from 1/16X to 2X: a bar a step to a 32nd note a step |
 | Scenes | a column of clips | a row of clips across all 8 tracks; 16 scenes |
 | Main effects | 2 for the Set | a chain of audio effects on each send and on Master, then the limiter |
 
@@ -264,7 +264,7 @@ numbers, note names as the screen has them.
 | Kind | When | Examples |
 |---|---|---|
 | A view | the base view changes; not when a popup over it closes | `Session`, `Track 3, Bass, Synth`, `Projects`, `Loop, 3 pages + 5`, `Sampling, Mic`, `Chords layout` |
-| A value | a popup's words or the selection change | `Filter Frequency: 1.24 kilohertz`, `Chance: 50%`, `Voicing: +2`, `Dark Poly Pad`, `Rate: 1/16 triplet` |
+| A value | a popup's words or the selection change | `Filter Frequency: 1.24 kilohertz`, `Chance: 50%`, `Voicing: +2`, `Dark Poly Pad`, `Speed: one and a half times` |
 | A change with no popup | when it happens | `Track 3 muted`, `Step 5 on`, `Page 2`, `Clip 2 queued`, `Playing`, `Record on`, `Octave +1`, `Step 5 cut`, `Fill` |
 | A modifier | when it is held | `Shift`, `Copy`, `Delete`, `Mute`, `Loop` |
 | A chord or note, on request | when a step is held, or a chord pad is saved | `D minor seven`, `C3, E3, G3` |
@@ -863,7 +863,7 @@ framed; a muted track's is drawn dotted; a silent one is a flat line. It is the 
 sounding. In Session Mode it is also the first place on the wheel, before LEVEL (section 8.2).
 
 **Tracks.** The four tracks of the bank as four rows of sixteen steps, in the order of the track buttons beside
-the pads. Each row is that track's own page with its own playhead, since tracks may differ in length and rate. The
+the pads. Each row is that track's own page with its own playhead, since tracks may differ in length and speed. The
 marks are the steps row's (section 3.1). Each row begins with its track's number, large, and the selected track's
 is boxed. It
 answers "what is everything else doing" without leaving the track being played. Plus and Minus are still the
@@ -935,15 +935,16 @@ defaults for steps entered next. With a step held, they set that step. This is t
 | 2 RATCH | ratchets: hits spread over the step | 1-8 |
 | 3 CHANCE | probability the step plays | 1-100% |
 | 4 COND | when the step plays | none, 1:2 to 8:8, FILL, !FILL, PRE, !PRE, NEI, !NEI, 1ST, !1ST |
-| 5 FUNC | a step function, run when the step plays | none, RESTART, REVERSE, FORWARD, FLIP, RANDOM, RND FN, LEAP, JUMP, REPEAT |
-| 6 AMOUNT | the function's number | LEAP: steps to leap, -15 to +15. JUMP: the step to go to. REPEAT: 1-16 |
+| 5 FUNC | a step function, run when the step plays | none, RESTART, REVERSE, FORWARD, FLIP, RANDOM, RND FN, LEAP, JUMP, JUMP PG, REPEAT |
+| 6 AMOUNT | the function's number, up to 32, so it reaches across two pages | LEAP: steps to leap, -32 to +32. JUMP: the step to go to, 1-32, counted from the loop's start. JUMP PG: the page to go to, 1-16. REPEAT: how many more times the step plays, 1-32 |
 | 7 LENGTH | note length by the table; the same value as step + wheel | 1/8 of a step to 64 steps, or held until the next note |
 | 8 SLIDE | glide into the next note | off, on |
 
 **Functions** act on the track's playhead, not on the note. RESTART goes back to the loop's start. REVERSE and
 FORWARD set the direction and FLIP turns it round. RANDOM jumps to a random step, and RND FN does a random one of
-these. LEAP skips a number of steps. JUMP goes to a named step. REPEAT plays the step again on the next few steps as
-if it had been copied there, skipping what is under them. Because each track has its own playhead, functions on one
+these. LEAP skips a number of steps. JUMP goes to a named step, and JUMP PG to the first step of a named page. REPEAT holds
+the playhead on its step: the step plays again, the amount of times, and only then does the playhead move on. Nothing
+under it is skipped, so the track runs that many steps late. Because each track has its own playhead, functions on one
 track put it out of step with the others on purpose: that is what they are for.
 
 **Fill** is Shift + Loop, held: the FILL conditions pass while it is down. The Loop light blinks fast, the
@@ -972,22 +973,27 @@ Mode with the owner's corrections.
 |---|---|---|
 | Loop, quick click | Loop Mode latched: the steps are the pages. Loop again, or Back, leaves | [M] |
 | Loop, held | the same while held; a hold let go unused does not latch | [M] |
-| A page, quick click | show that page | [M] |
-| Hold a page, press another | the loop is those pages and the ones between | [M] |
-| Double click a page | the loop is that page alone, always | [M] |
+| A page, quick click | show that page, one past the clip's end too. A tap only shows: the loop and the clip stay as they were | [M] |
+| Hold a page, press another | the loop is those pages and the ones between, any of the sixteen; the page shown moves into it | [M] |
+| Double click a page | the loop is that page alone, always, never a range. Any page, one past the clip's end too. One Undo brings back the loop before the first click | [M, RemoteFM1] |
 | **Wheel** | the loop's length, a step a click; Shift: a page. Up to 16 pages | [RemoteFM1; Move's wheel moves a bar] |
-| **The two lower pad rows** | the last page's length: pad 1-16 ends it after that many steps. Lit up to the length, the length itself white. The two upper rows are dark, and no pad plays | [New, RemoteFM1] |
+| **The two lower pad rows** | the last page's length: pad 1-16 ends it after that many steps. Lit up to the length, the length itself white. No pad plays | [New, RemoteFM1] |
+| **The pad row above them** | the clip's speed: eight pads, 1/16X to 2X from the left, blue, the current one white (section 7.5) | [New, the owner's] |
+| **The top pad row** | the feel, at the right: pad 7 STRAIGHT, pad 8 TRIPLET, blue, the current one white. Pads 1-6 are dark | [New, the owner's] |
 | Hold a page + wheel / Volume / Plus / Minus / arrows | length, velocity, pitch, nudge for all its notes | [M] |
 | Copy + a page, then an empty page | copy it; a clipboard of its own, apart from the steps' | [M] |
 | Delete + a page, then an empty page | cut it and paste it; Back clears the mark | [M+] |
 | Shift + Step 15 | double the loop | [M] |
 | Left / Right | the page shown, with no wrap; the same in and out of Loop Mode | [M] |
-| Right, past the last page | a ghost page, shown as +. It becomes real when a step goes in; in Loop Mode, when its key is pressed | [M] |
+| Right, past the clip's last page | pages the clip does not have yet, each shown as +. Out of Loop Mode one becomes real when a step goes in. In Loop Mode pressing its key confirms the new pages, the clip reaching to that page; only for one reached with Right, not one a tap showed. Leaving adds nothing | [M, RemoteFM1] |
 | Back held + Left | the first page | [RemoteFM1] |
-| Back held + Loop | the loop back to the whole clip | [RemoteFM1] |
+| Back held + Loop | trim: the loop becomes the pages with steps on them, from the first such page to the last. A loop of 8 pages with steps on pages 1 and 2 becomes pages 1 and 2. With no steps anywhere, nothing changes | [New, the owner's; RemoteFM1 sets the loop to the whole clip] |
 
 Page lights: track colour in the loop, white for the page shown, pulsing for the page playing, dim for the clip's
-pages outside the loop, off past the clip.
+pages outside the loop, off past the clip. A page past the clip can still be pressed.
+
+A step entered after the loop's end, on the loop's own last page, leaves the loop's length alone: the note is
+outside the loop and its step is dim. A step on a later page grows the loop to that page's end.
 
 A clip of 53 steps reads `3 Pages + 5` and its last page shows five lit steps and eleven dark ones. While the length
 is being set, the popup's bottom row is that last page's 16 steps, and for the popup's second the step lights show
@@ -998,26 +1004,40 @@ in Workflow Settings.
 
 Loop Mode is RemoteFM1's, whole: pages picked with a click, a loop made from one page to another, a double click
 for one page alone, the two lower pad rows for the last page's length, Right for a new page that becomes real
-when it is pressed or a step goes into it. One Move gesture is given up for it: in Move's Loop Mode a held bar
+when its key is pressed or a step goes into it. One Move gesture is given up for it: in Move's Loop Mode a held bar
 plus a pad adds that note to every step of the bar [11.9]. The pads are the page length instead (rule R3: a layer
 that uses some pads takes them all).
 
 ![Loop Mode](img/loop-pages.png)
 
-### 7.5 Rate
+### 7.5 Speed
 
-Move has one Step Grid for the Set, in Workflow Settings [13.2]. In Feverdream the same entry is per clip and is also
-the first two encoders of the SEQ clip page.
+Move has one Step Grid for the Set, in Workflow Settings [13.2]. In Feverdream each clip has a **speed**: how fast
+its steps go by, against a step that is a 16th note. It is the first encoder of the SEQ clip page, and in Loop Mode
+it is a row of pads (section 7.4).
 
-- **Rate**: how long a step lasts. 1/64, 1/32, 1/16 (the default), 1/8, 1/4, 1/2, 1 bar, 2 bars, 4 bars. RemoteFM1's
-  list, with 1/64 added.
-- **Feel**: straight, dotted (half as long again) or triplet (two thirds). On a triplet page every fourth step is
-  dark and dead, leaving 12 live steps, as on Move [13.2] and RemoteFM1.
+| Speed | A step lasts | |
+|---|---|---|
+| 1/16X | 1 bar | |
+| 1/8X | half a bar | |
+| 1/4X | a quarter note | |
+| 1/2X | an eighth note | |
+| 3/4X | an eighth-note triplet | three steps to a quarter note |
+| **1X** | a 16th note | the default |
+| 3/2X | a 16th-note triplet | six steps to a quarter note |
+| 2X | a 32nd note | |
+
+- Eight speeds, so in Loop Mode they are one row of eight pads, blue, the current one white, in this order from
+  the left. A press sets the speed at once. With Speech on it is said: `Speed: three quarters`.
+- **Feel**: straight or triplet, the second encoder of the clip page and, in Loop Mode, the last two pads of the
+  top row, under the right hand. Triplet uses three steps of every group of four: the fourth step of each group is dark and dead, leaving
+  12 live steps a page, as on Move [13.2] and RemoteFM1. The three share the time of the four, so a page lasts as
+  long as it did and each step is a third longer. Said: `Feel: triplet`.
 - Also on the page: length in steps, direction (forward, reverse, pendulum, random), swing, transpose.
 
-A new clip takes the track's rate. Changing the rate changes how fast the clip runs, so tracks can run at different
-speeds and in different meters against each other. A separate tool, Regrid, keeps the notes where they are in time
-and changes the resolution, which is what Move's Step Grid does.
+A new clip takes the track's speed. Changing the speed changes how fast the clip runs, so tracks can run at
+different speeds and in different meters against each other. A separate tool, Regrid, keeps the notes where they
+are in time and changes the resolution, which is what Move's Step Grid does.
 
 ### 7.6 MIDI FX, generators and other sequencers
 
@@ -1235,7 +1255,7 @@ screen's Shift card names all sixteen.
 |---|---|---|
 | 1 | Projects (Set Overview) | [M] |
 | 2 | Setup: **Speech** (Off, On, Jog) first, then Wi-Fi, Feverdream Manager, MIDI, brightness, about, **Exit to Move** | [M+] |
-| 3 | Workflow Settings: Quantize, Step Grid (rate), Count-In, Autoload, Launch Quantize, Record Mode, Page Follow | [M+] |
+| 3 | Workflow Settings: Quantize, Step Grid, Count-In, Autoload, Launch Quantize, Record Mode, Page Follow | [M+] |
 | **4** (cylinder) | **Track Setup**: type, name, colour, MIDI channel, voices, output. The cylinder read as the track's body | [New] |
 | 5 | Tempo; wheel sets, Shift for fine, press confirms. Each further press of Step 5 is a tap of the tempo, as in RemoteFM1 | [M+] |
 | 6 | Metronome | [M] |
@@ -1368,8 +1388,7 @@ Decided:
   in one place; nothing shows before the hold; a quick click acts on release (section 1.1).
 - **The owner's UX rules R1-R6 apply** (24 November 2026), from RemoteFM1 (section 1.2).
 - **Carried over from RemoteFM1** (24 November 2026), where the owner had already decided them: the TRIG page and its
-  knob order; functions as RemoteFM1's FUNC list; Fill on Shift + Loop held; the rate list with straight, dotted and
-  triplet, changing a clip's speed; Loop Mode's wheel moving a step a click and a page with Shift; the last page's
+  knob order; functions as RemoteFM1's FUNC list; Fill on Shift + Loop held; straight and triplet feels; Loop Mode's wheel moving a step a click and a page with Shift; the last page's
   length on the two lower pad rows; the last-notes rule for a clicked step; a later step stretching a held step's
   notes.
 - **Keyboard pad layout** (24 November 2026): two octaves, each starting on C (section 6.3).
@@ -1434,6 +1453,14 @@ Decided:
 - **The belt everywhere it was proposed** (24 November 2026): pad layouts, track types, adding a device, Tools and
   views, beside the chain and Session Mode's wheel (section 3.5).
 
+- **Clip speeds** (24 November 2026, the owner's): 1/16X, 1/8X, 1/4X, 1/2X, 3/4X, 1X, 3/2X, 2X, where 1X is a
+  16th note a step. In Loop Mode they are a row of blue pads above the page-length pads. This replaces the rate
+  list carried over from RemoteFM1 (sections 7.4, 7.5).
+- **Feel is straight or triplet, on the two right-hand pads above the speeds** (24 November 2026, the owner's). Triplet uses
+  three steps of every four. Dotted, which RemoteFM1's list had, is left out (section 7.5).
+- **Loop Mode works exactly as RemoteFM1's page edit** (24 November 2026, the owner's): a tap shows a page, two
+  pages held make the loop, a double click loops one page, the wheel sets the length, Right offers new pages. The
+  one addition is the row of speed pads (section 7.4).
 - **Step + wheel press goes to TRIG and back** (24 November 2026, the owner's): TRIG stays when the step is let
   go; a step held and the wheel pressed again returns to the page it came from (section 7.2).
 - **Stop all clips: a double click on a track button in Session Mode** (24 November 2026, the owner's), the
@@ -1462,7 +1489,7 @@ Each of these is now in the section named.
 | Page edit: latched by a quick click on Loop; show, range, solo a page; ghost pages | 7.4 |
 | The last page's length on the pads, and the popup that shows that page's steps | 7.4 |
 | Arrows walk the pages with no wrap, the same in and out of page edit | 7.4 |
-| A rate and a feel per track | 7.5 |
+| A speed and a feel per track | 7.5 |
 | An arp with lanes on the step buttons | 7.6 |
 | Trig values kept as locks, so every edit command carries them | 7.3 |
 | The piano roll of the page with the steps row always under it | SEQ's main page, 6.1 |

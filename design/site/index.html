@@ -160,9 +160,28 @@ canvas.oled{display:block;width:100%;aspect-ratio:2/1;image-rendering:pixelated;
 .steps .head{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .steps .fn{border-color:var(--accent);color:var(--accent);border-width:2px}
 .steps .new{border-color:var(--accent);border-width:2px}
+.fnbox{position:relative;margin-top:44px;row-gap:26px}
+.fnarcs{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.fnarc{fill:none;stroke:var(--accent);stroke-width:2}
+.fnarc.dash{stroke-dasharray:4 4;opacity:.7}
+.fnarc.strong{stroke-width:3}
+.steps .skip{opacity:.4;text-decoration:line-through}
+.steps .cp{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.steps .tgt{outline:2px solid var(--accent);outline-offset:1px}
+.steps .tr1{background:color-mix(in srgb,var(--teal) 60%,var(--chip))}
+.steps .tr2{background:color-mix(in srgb,var(--teal) 35%,var(--chip))}
+.steps .tr3{background:color-mix(in srgb,var(--teal) 18%,var(--chip))}
+.steps .dim{border-color:var(--teal);color:var(--teal)}
+.steps button{position:relative}
+.steps .has::after{content:"";position:absolute;left:50%;bottom:-7px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--ink)}
+.steps .play{box-shadow:0 0 0 3px var(--accent)}
 .pads8{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
 .pads8 button{aspect-ratio:4/3;border-radius:3px;border:1px solid var(--line);background:var(--chip);cursor:pointer;font:500 10px var(--mono);color:var(--mute);padding:0}
 .pads8 .lit{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+/* #2060ff, Move's blue pad, with white text: 5.6 to 1 */
+.pads8 .blue{background:#2060ff;border-color:#2060ff;color:#fff}
+.pads8 .dead,.pads8 .dead.lit,.pads8 .dead.head{background:transparent;border-style:dashed;border-color:var(--line);color:var(--mute);opacity:.55}
+.pads8 button:disabled{cursor:default}
 .pads8 .head{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .readout{font:800 30px var(--display);font-stretch:118%}
 select{font:inherit;padding:6px 8px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
@@ -423,32 +442,49 @@ ol.rules span{color:var(--mute);grid-column:2}
 <section class="view" id="v-steps" hidden>
   <div class="head">
     <h1>Sequencing: Move's steps, with RemoteFM1's depth</h1>
-    <p>Sixteen steps a page, up to sixteen pages a clip, a rate for each clip, and a TRIG page for what a white light cannot show: chance, conditions, ratchets, micro timing and functions that move the playhead.</p>
+    <p>Sixteen steps a page, up to sixteen pages a clip, a speed for each clip, and a TRIG page for what a white light cannot show: chance, conditions, ratchets, micro timing and functions that move the playhead.</p>
   </div>
 
   <div class="grid g2">
     <div class="panel sec">
       <h2>Pages and length</h2>
-      <p class="mute">In Loop Mode the steps are the pages, and the two lower rows of pads end the last page. Set both.</p>
+      <p class="mute">Loop Mode, working as RemoteFM1's page edit does. The steps are the pages. <b>Click</b> a page: it is shown, and nothing else changes. <b>Hold Shift, click a page, then another</b>: two pages held, and the loop is those and the pages between. <b>Double click</b>: the loop is that page alone. The wheel sets the loop's length a step a click, a page with Shift. Right, past the clip, offers new pages; press one's key to confirm it. A dot under a page means it has steps; <b>Back + Loop</b> trims the loop to those pages. The feel and speed rows are Feverdream's additions.</p>
       <span class="lab">Pages (the step buttons)</span>
       <div class="steps" id="pgsteps"></div>
-      <span class="lab">Last page ends after (the lower pad rows)</span>
+      <div class="row">
+        <button class="btn" type="button" id="pg-left" aria-label="Left: the page before">&#9664; Left</button>
+        <button class="btn" type="button" id="pg-right" aria-label="Right: the next page">Right &#9654;</button>
+        <button class="btn" type="button" id="pg-wdn" aria-label="Wheel: the loop shorter. With Shift, by a page">Wheel &minus;</button>
+        <button class="btn" type="button" id="pg-wup" aria-label="Wheel: the loop longer. With Shift, by a page">Wheel +</button>
+        <button class="btn" type="button" id="pg-whole">Back + Loop: trim to steps</button>
+        <button class="btn" type="button" id="pg-has"></button>
+        <button class="btn" type="button" id="pg-reset">Start again</button>
+      </div>
+      <p class="mute" id="pgkey" role="status"></p>
+      <span class="lab">Feel (the top pad row, pads 7 and 8, at the right)</span>
+      <div class="pads8" id="feelpads"></div>
+      <span class="lab">Speed (the next pad row, blue): 1/16X to 2X</span>
+      <div class="pads8" id="speedpads"></div>
+      <span class="lab">The loop's last page ends after (the two lower pad rows)</span>
       <div class="pads8" id="lastpads"></div>
-      <div class="row"><label class="lab" for="rate">Rate</label>
-        <select id="rate"></select></div>
       <div class="readout" id="lenout"></div>
       <p class="mute" id="lensub"></p>
     </div>
     <div class="panel sec">
       <h2>Functions move the playhead</h2>
-      <p class="mute">A function sits on a step and acts on the track's own playhead, so one track can fall out of step with the others on purpose. Here it sits on step 9.</p>
+      <p class="mute">A function sits on a step and acts on the track's own playhead, so one track can fall out of step with the others on purpose. <b>Click any step</b> to put the function there, and set the pattern's length. Pick a function and the picture shows what it does; Play runs it.</p>
       <div class="row">
         <select id="fn" aria-label="Function"></select>
-        <label class="lab" for="amt">Amount</label><input id="amt" type="range" min="1" max="15" value="3" style="width:110px"><span class="mono" id="amtv">3</span>
+        <label class="lab" for="amt">Amount</label><input id="amt" type="range" min="1" max="32" value="3" style="width:150px"><span class="mono" id="amtv">3</span>
         <button class="btn" id="fnplay" type="button" aria-pressed="false">Play</button>
       </div>
-      <div class="steps" id="fnsteps"></div>
-      <p id="fntext"></p>
+      <div class="row">
+        <label class="lab" for="fnlen">Pattern length</label><input id="fnlen" type="range" min="2" max="64" value="32" style="width:150px"><span class="mono" id="fnlenv">32 steps</span>
+      </div>
+      <div class="steps fnbox" id="fnsteps"></div>
+      <p id="fnnote" role="status"><b></b></p>
+      <p class="mute" id="fntext"></p>
+      <p class="mute">Ringed in colour: the step with the function. White: the playhead. Arrow: where it sends the playhead. Struck out: steps that never play. A loop over a step: the playhead holds there. Faint: where the playhead has just been.</p>
     </div>
   </div>
 
@@ -461,8 +497,8 @@ ol.rules span{color:var(--mute);grid-column:2}
       <tr><td><b>2 RATCH</b></td><td>hits spread over the step</td><td>1 to 8</td></tr>
       <tr><td><b>3 CHANCE</b></td><td>probability the step plays</td><td>1 to 100%</td></tr>
       <tr><td><b>4 COND</b></td><td>when the step plays</td><td>none, 1:2 to 8:8, FILL, !FILL, PRE, !PRE, NEI, !NEI, 1ST, !1ST</td></tr>
-      <tr><td><b>5 FUNC</b></td><td>a step function, run when the step plays</td><td>RESTART, REVERSE, FORWARD, FLIP, RANDOM, RND FN, LEAP, JUMP, REPEAT</td></tr>
-      <tr><td><b>6 AMOUNT</b></td><td>the function's number</td><td>LEAP -15 to +15, JUMP a step, REPEAT 1 to 16</td></tr>
+      <tr><td><b>5 FUNC</b></td><td>a step function, run when the step plays</td><td>RESTART, REVERSE, FORWARD, FLIP, RANDOM, RND FN, LEAP, JUMP, JUMP PG, REPEAT</td></tr>
+      <tr><td><b>6 AMOUNT</b></td><td>the function's number</td><td>up to 32: LEAP -32 to +32, JUMP a step, JUMP PG a page, REPEAT 1 to 32 more plays</td></tr>
       <tr><td><b>7 LENGTH</b></td><td>note length; the same value as step + wheel</td><td>1/8 of a step to 64 steps, or held to the next note</td></tr>
       <tr><td><b>8 SLIDE</b></td><td>glide into the next note</td><td>off, on</td></tr>
     </table></div>
@@ -545,7 +581,7 @@ ol.rules span{color:var(--mute);grid-column:2}
       <div class="stage"><b>1</b><div>Control layer, screen, model; browser and simulator builds. No sound</div><span>The whole navigation clickable and spoken in a browser</span></div>
       <div class="stage"><b>2</b><div>The Move build, clock, step sequencer, one synth, Sample Kit, mixer, two effects, save and load</div><span>A four-bar beat made on the unit, the Move way</span></div>
       <div class="stage"><b>3</b><div>Record, capture, automation, Loop Mode, browser, presets, sampling</div><span>Parity: a Move owner misses nothing</span></div>
-      <div class="stage"><b>4</b><div>Eight tracks and banks, 16 pages, rates, locks on every device, sends and master</div><span>The core of what is new</span></div>
+      <div class="stage"><b>4</b><div>Eight tracks and banks, 16 pages, speeds, locks on every device, sends and master</div><span>The core of what is new</span></div>
       <div class="stage"><b>5</b><div>Feverdream Manager: files, then Remote</div><span>Projects and samples managed from a browser</span></div>
       <div class="stage"><b>6</b><div>MIDI FX, generators, MIDI tracks, FX Bus, Audio Loops, Perform, Grab, Bounce</div><span>All seven track types</span></div>
       <div class="stage"><b>7</b><div>Scripted sequencers, Live export, Max for Live devices</div><span></span></div>
