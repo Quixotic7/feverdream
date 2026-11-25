@@ -5222,7 +5222,8 @@
       "click": "Launch the scene on all 8 tracks; an empty scene stops every clip",
       "hold": "",
       "shift": "",
-      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks."
+      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks.",
+      "doubleClick": "Stop every clip at the launch quantize [New]"
      },
      "led": {
       "color": "#7f7f7f"
@@ -5235,7 +5236,8 @@
       "click": "Launch the scene on all 8 tracks; an empty scene stops every clip",
       "hold": "",
       "shift": "",
-      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks."
+      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks.",
+      "doubleClick": "Stop every clip at the launch quantize [New]"
      },
      "led": {
       "color": "#7f7f7f"
@@ -5248,7 +5250,8 @@
       "click": "Launch the scene on all 8 tracks; an empty scene stops every clip",
       "hold": "",
       "shift": "",
-      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks."
+      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks.",
+      "doubleClick": "Stop every clip at the launch quantize [New]"
      },
      "led": {
       "color": "#00e050"
@@ -5261,7 +5264,8 @@
       "click": "Launch the scene on all 8 tracks; an empty scene stops every clip",
       "hold": "",
       "shift": "",
-      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks."
+      "description": "Copy + button, then a button: copy the scene. Delete + button, twice: delete it [M, 18.8]. In Note Mode these buttons are the tracks.",
+      "doubleClick": "Stop every clip at the launch quantize [New]"
      },
      "led": {
       "color": "#7f7f7f"

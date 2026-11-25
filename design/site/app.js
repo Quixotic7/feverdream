@@ -698,6 +698,7 @@
     }
 
     $('open').append(...items.filter((i) => i.kind === 'open').map(card));
+    if (!FD.open.length) $('open').append(el('p', { class: 'mute' }, 'Nothing is open. Every item raised so far has an answer below; new ones appear here as the devices are designed.'));
     $('decided').append(...items.filter((i) => i.kind === 'decided').map(card));
     [['all', 'All'], ['todo', 'Unanswered'], ['discuss', 'To discuss'], ['answered', 'Answered']].forEach(([k, t]) =>
       $('rv-filter').append(el('button', { class: 'btn', type: 'button', 'aria-pressed': k === 'all' ? 'true' : 'false', onclick: (e) => { filter = k; $('rv-filter').querySelectorAll('.btn').forEach((b) => b.setAttribute('aria-pressed', b === e.currentTarget ? 'true' : 'false')); showAll(); } }, t)));

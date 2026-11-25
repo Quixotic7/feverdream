@@ -414,6 +414,7 @@ def lay_session():
         put(c, "track-%d" % (r + 1), led, label="Scene %d" % (r + 1),
             function="The scene beside it [New]. Dim white: has clips. Green: playing. Off: empty.",
             click="Launch the scene on all 8 tracks; an empty scene stops every clip", hold="", shift="",
+            doubleClick="Stop every clip at the launch quantize [New]",
             description="Copy + button, then a button: copy the scene. Delete + button, twice: delete it "
             "[M, 18.8]. In Note Mode these buttons are the tracks.")
     for i in range(8):

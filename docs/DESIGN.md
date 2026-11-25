@@ -1,6 +1,6 @@
 # Feverdream: UI/UX design
 
-Draft 18, 24 November 2026. Status: proposal for review. Nothing here is built yet.
+Draft 19, 24 November 2026. Status: proposal for review. Nothing here is built yet.
 
 Feverdream is a standalone groovebox for Ableton Move. It runs in place of Move's own software, as EvilGenius and
 RemoteFM1 do. This document describes how it is played: what every control does, what the screen and LEDs say, and how
@@ -916,7 +916,7 @@ itself.
 encoders, from any device and any page. It stays when the step is let go, so one step after another can be
 given its chance, condition or ratchet. A step held and the wheel pressed again goes back to the page it came
 from. While TRIG is shown this way the screen's corner carries the TRIG symbol (rule 5), and Back also goes
-back. Proposed after the owner's note; open item 1.
+back.
 
 **Parameter locks are Move's per-step automation**, with two additions. A lock can be placed on a step with no note:
 the step lights in bright track colour. And any device in the row can be locked, including MIX, MIDI FX and the
@@ -1130,6 +1130,7 @@ below, its meter on the screen.
 | Delete + pad | delete a clip; one Undo brings it back | [M] |
 | Shift + Play | retrigger every playing clip | [M] |
 | **Track button** | launch the scene beside it on all 8 tracks; a scene with no clips stops every clip | [New] |
+| **Track button, double click** | stop every clip at the launch quantize. The first click queues the scene and the second takes that back and queues the stop, so the scene is never heard. With the launch quantize at none the scene starts at the first click and stops at the second | [New] |
 | Slide along a row | the same: launch the scene | [M+, Move's slide, turned] |
 | Copy + track button, then a track button | copy a scene | [M, from 18.8] |
 | Delete + track button | delete a scene; one Undo brings it back | [M, from 18.8] |
@@ -1137,7 +1138,6 @@ below, its meter on the screen.
 | Left / Right | select the previous or next track | [M+] |
 | **Odd step under a column** (1, 3 ... 15) | quick click: select that track; double click: open it in Note Mode | [M, from 18.7] |
 | **Even step under a column** (2, 4 ... 16) | stop that track's clip at the launch quantize | [M, from 18.7] |
-| **Any even step, double click** | stop every clip at the launch quantize. The first click has already stopped that track, so nothing waits for the second | [New; proposed, open item 2] |
 | Odd step held + Volume | that track's level | [M, from 18.1] |
 | Mute + odd step | mute the track; Shift + Mute: solo | [M+] |
 | Note/Session | Note Mode on the selected track | [M] |
@@ -1434,15 +1434,13 @@ Decided:
 - **The belt everywhere it was proposed** (24 November 2026): pad layouts, track types, adding a device, Tools and
   views, beside the chain and Session Mode's wheel (section 3.5).
 
-Open. Each has a recommendation in the text above.
+- **Step + wheel press goes to TRIG and back** (24 November 2026, the owner's): TRIG stays when the step is let
+  go; a step held and the wheel pressed again returns to the page it came from (section 7.2).
+- **Stop all clips: a double click on a track button in Session Mode** (24 November 2026, the owner's), the
+  buttons that launch scenes there. Shift + a stop step was not free, and a double click on a stop step was the
+  other candidate (section 8.1).
 
-1. **Step + wheel press, to TRIG and back.** The owner's suggestion, written into section 7.2: with a step held,
-   a wheel press shows TRIG; it stays when the step is let go; a step held and the wheel pressed again returns to
-   the page it came from. The part to confirm is that TRIG stays after the step is let go. The other reading is
-   that it lasts only while the step is held, and the second press goes back early.
-2. **Stop all clips.** The owner suggested Shift + one of the stop steps. Shift + every step is already a function
-   with a printed icon (section 11), in Session Mode too, so that gesture is taken. Proposed in its place: a double
-   click on any stop step. An empty scene still stops everything.
+Open. Nothing: every item raised so far has an answer. New ones are added here as the devices are designed.
 
 ## 15. What RemoteFM1 and Melodee teach
 
