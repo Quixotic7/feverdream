@@ -29,11 +29,17 @@ def S(s, x, y, t, v=1):
 
 
 # ------------------------------------------------------------------ the parts of a rest view
+BOX_W = 36
+
+
 def name_line(s, trk, text, y=24):
-    """The one large line: the track's number in a box, then the name of what the wheel is on."""
-    s.fill(0, y - 1, 14, 17)
-    L(s, 2, y, str(trk), 0)
-    L(s, 18, y, text)
+    """The one large line. The box at its left is one width whatever it holds: the track's number, or S and a
+    step's number while that step is held. Beside it the name of what the wheel is on; a touched encoder's name,
+    then its value a moment later or as it turns; a held step's notes."""
+    box = str(trk)
+    s.fill(0, y - 1, BOX_W, 17)
+    L(s, (BOX_W - (len(box) * 12 - 2)) // 2, y, box, 0)
+    L(s, BOX_W + 4, y, text)
 
 
 def strip(s, n, cur, y=1, front=False, boxes=False):
@@ -130,6 +136,13 @@ def ic_pads(s, x, y):
                 s.rect(x + 2 + c * 5, y + 2 + r * 5, 4, 4)
 
 
+def ic_arp(s, x, y):
+    """A MIDI effect: an arp, notes climbing in steps."""
+    for i in range(4):
+        s.fill(x + 1 + i * 4, y + 13 - i * 3, 3, 3)
+    s.hl(x + 1, y + 16, 16)
+
+
 def ic_seq(s, x, y):
     for r in range(2):
         for c in range(4):
@@ -162,7 +175,7 @@ def ic_mix(s, x, y):
         s.fill(cx - 2, y + k, 5, 3)
 
 
-CHAIN = [ic_rack, ic_macro, ic_pads, ic_seq, ic_synth, ic_filter, ic_delay]   # MIX is past the right edge
+CHAIN = [ic_rack, ic_macro, ic_seq, ic_arp, ic_synth, ic_filter, ic_delay, ic_mix]   # MIX: the last box
 
 
 # ------------------------------------------------------------------ pictograms, drawn from a value 0..1
@@ -197,7 +210,7 @@ FILTER = [("lp", 0.62), ("peak", 0.5), ("env", 0.4), ("steps", 0.5), ("bar", 0.2
 
 
 # ------------------------------------------------------------------ rest views
-CHAIN_NAMES = ["GLASS", "MACROS", "PADS", "SEQ", "DRIFT", "FILTER", "DELAY", "MIX"]
+CHAIN_NAMES = ["GLASS", "MACROS", "SEQ", "ARP", "DRIFT", "FILTER", "DELAY", "MIX"]   # PADS: Shift + Step 8
 
 
 def belt(s, y, x1, phase):
@@ -223,8 +236,8 @@ def big(s, fn, x, y):
 
 def scr_chain(sel=4, off=0):
     """The chain's belt, which shows only while the wheel turns and takes the whole screen: the device under the
-    wheel at twice the size in the middle, its neighbours small beside it, all riding into the machine at the
-    right, which is MIX; the name large under the belt. off: dots still to slide, on the way to sel."""
+    wheel at twice the size in the middle, its neighbours small beside it; MIX is the last box and rides the belt
+    as the others do; the name large under the belt. off: dots still to slide, on the way to sel."""
     s = Scr()
     for i, fn in enumerate(CHAIN):
         d = i - sel
@@ -233,15 +246,9 @@ def scr_chain(sel=4, off=0):
             s.inv(45, 0, 38, 38)
             continue
         x = 55 + d * 22 + off if off else 55 + d * 22 + (10 if d > 0 else -10)
-        if 0 <= x and x + 17 <= 104:
+        if 0 <= x and x + 17 <= 126:
             fn(s, x, 20)
-    belt(s, 38, 106, -(sel * 22) + off)
-    # the machine the belt runs into: the mix strip
-    s.rect(106, 12, 22, 30)
-    s.vl(106, 21, 16, 0)
-    ic_mix(s, 109, 18)
-    if sel == 7 and off == 0:
-        s.inv(107, 13, 20, 28)
+    belt(s, 38, 128, -(sel * 22) + off)
     Lc(s, 64, 47, CHAIN_NAMES[sel if abs(off) < 11 else sel - (1 if off > 0 else -1)])
     return s
 
@@ -250,16 +257,40 @@ MACROS = [("bar", 0.7), ("lp", 0.45), ("sine", 0.3), ("env", 0.6), ("steps", 0.7
           ("bar", 0.9)]
 
 
-def scr_chain_rest(sel=4, t=0.0):
-    """The chain at rest: no belt. The page marks along the top, a box a device, say where the wheel is; under
-    them the eight macros, which are what the encoders turn here; then the track's number and the device's name."""
+def picto_big(s, kind, x, y, w, h, v):
+    """A pictogram drawn large, its lines two dots thick: the same picture, big."""
+    tmp = Scr()
+    picto(tmp, kind, 0, 2, w, h, v)
+    for j in range(h + 3):
+        for i in range(w + 1):
+            if tmp.get(i, j):
+                s.fill(x + i, y + j - 2, 2, 2)
+
+
+def scr_chain_rest(sel=1, t=0.0):
+    """The chain at rest: no belt, no marks, no name. The main page of the device under the wheel as eight big
+    boxes, one a knob, down to the steps row. Here the wheel is on MACROS, where home puts it."""
     s = Scr()
-    strip(s, 8, sel, boxes=True)
-    for i, (kind, v) in enumerate(MACROS):
+    for i, (kind, v) in enumerate(FILTER if sel == 5 else MACROS[::-1] if sel == 4 else MACROS):
         live = min(1.0, max(0.0, v + 0.12 * math.sin(t))) if i == 1 else v
-        picto(s, kind, (i % 4) * 32 + 3, 7 + (i // 4) * 11, 26, 9, live)
-    name_line(s, 3, CHAIN_NAMES[sel], 30)
+        x, y = (i % 4) * 32, (i // 4) * 26
+        picto_big(s, kind, x + 3, y + 3, 25, 18, live)
     steps_row(s)
+    return s
+
+
+def scr_card(kind="lp", v=0.62, name="CUTOFF", num="1.24", unit="KHZ", enc=0):
+    """A knob touched or turned at the chain: the whole screen, its name, its value large, its pictogram large."""
+    s = Scr()
+    L(s, 2, 2, name)
+    k = 4
+    while k > 2 and len(num) * 6 * k - k > 76:
+        k -= 1
+    s.t5(2, 19 if k == 4 else 24, num, 1, k)
+    picto_big(s, kind, 80, 19, 44, 19, v)
+    S(s, 126 - len(unit) * 6 + 1, 41, unit)
+    s.dots(2, 57, 124, 2)
+    s.vl(2 + int(v * 123), 55, 5)
     return s
 
 
@@ -292,6 +323,11 @@ def _glyph(s, kind, x, y, n):
         s.fill(x + c, y + n - 2 * c, c - 1, c - 1)
 
 
+    elif kind == "out":                           # the limiter and the way out, drawn as a speaker
+        s.circ(x + n // 2, y + n // 2, n // 2 - 1)
+        if n > 10:
+            s.circ(x + n // 2, y + n // 2, n // 5)
+        s.set(x + n // 2, y + n // 2)
     elif kind == "scope":
         for i in range(n):
             s.set(x + i, y + n // 2 - round(math.sin(i / n * 2 * math.pi) * n / 3))
@@ -303,6 +339,25 @@ def _glyph(s, kind, x, y, n):
         s.hl(x, y + n // 2, n)
         s.vl(x + n // 2, y + n // 2 - 1, 3)
         s.fill(x + n * 2 // 3, y + n // 2 - n // 4, max(2, n // 6), n // 2 + 1)
+    elif kind == "clip":                          # the clips: a grid, one playing
+        c = n // 4
+        for r in range(4):
+            for q in range(4):
+                if (r, q) == (1, 2):
+                    s.fill(x + q * c, y + r * c, c - 1, c - 1)
+                else:
+                    s.set(x + q * c + c // 2, y + r * c + c // 2)
+    elif kind == "track":                         # one track's strip: a fader and a knob
+        s.vl(x + n // 4, y, n)
+        s.fill(x + n // 4 - 2, y + n // 2, 5, 3)
+        s.circ(x + 3 * n // 4, y + n // 4, max(2, n // 6))
+        s.vl(x + 3 * n // 4, y + n // 2, n // 2)
+    elif kind in ("1", "2", "3"):                 # a send: an arrow out, and its number in dots
+        s.hl(x, y + n // 3, n - 1)
+        s.line(x + n - 5, y + n // 3 - 3, x + n - 1, y + n // 3)
+        s.line(x + n - 5, y + n // 3 + 3, x + n - 1, y + n // 3)
+        for i in range(int(kind)):
+            s.fill(x + i * (n // 3), y + n - 3, 3, 3)
     elif kind in ("A", "B"):
         k = 2 if n >= 14 else 1
         s.t5(x + (n - 5 * k) // 2 + 1, y + (n - 7 * k) // 2, kind, 1, k)
@@ -312,8 +367,8 @@ def _glyph(s, kind, x, y, n):
             s.fill(x + q * w, y + n - int(k * n), max(1, w - 2), int(k * n))
 
 
-SESSION = [("scope", "SCOPES"), ("level", "LEVEL"), ("pan", "PAN"), ("A", "SEND A"), ("B", "SEND B"), ("fx", "A DELAY"),
-           ("fx", "B REVERB"), ("fx", "M COMP")]
+SESSION = [("clip", "CLIP"), ("track", "TRACK"), ("level", "LEVEL"), ("pan", "PAN"), ("1", "SEND 1"), ("2", "SEND 2"),
+           ("3", "SEND 3")]
 PICK = [("inkey", "IN KEY"), ("chrom", "CHROMATIC"), ("keys", "KEYBOARD"), ("chords", "CHORDS"), ("prog", "PROGRESS")]
 
 
@@ -323,9 +378,9 @@ def scr_belt(sel=2, off=0):
     return _belt(PICK, sel, off)
 
 
-def _belt(items, sel, off=0, machine=False):
+def _belt(items, sel, off=0):
     s = Scr()
-    x1 = 106 if machine else 128
+    x1 = 128
     for i, (kind, _) in enumerate(items):
         d = i - sel
         if d == 0 and off == 0:
@@ -338,33 +393,85 @@ def _belt(items, sel, off=0, machine=False):
                 s.rect(x, 16, 14, 14)
                 _glyph(s, kind, x + 3, 19, 8)
     belt(s, 30, x1, -(sel * 22) + off)
-    if machine:                                   # OUT: the limiter and the way out, drawn as a speaker
-        s.rect(106, 6, 22, 28)
-        s.vl(106, 17, 12, 0)
-        s.circ(117, 20, 7)
-        s.circ(117, 20, 3)
-        s.set(117, 20)
     Lc(s, 64, 37, items[sel][1])
-    strip(s, len(items) + (1 if machine else 0), sel, 58)
+    strip(s, len(items), sel, 58)
     return s
 
 
 def scr_sbelt(sel=3, off=0):
-    """Session Mode's belt: the mixer's pages, then the buses' effects, into OUT."""
-    return _belt(SESSION, sel, off, machine=True)
+    """Session Mode's belt: CLIP, TRACK, LEVEL, PAN and the three sends."""
+    return _belt(SESSION, sel, off)
 
 
-def scr_page(mod=0.0):
-    """mod: where an LFO has the cutoff now, either side of the value set by hand (the fixed tick)."""
+def scr_sclip(prog=0.4, blink=True):
+    """CLIP, Session Mode's home: RemoteFM4Move's session view, as core/ui.c draws it."""
     s = Scr()
-    for i, (kind, v) in enumerate(FILTER):
-        live = min(1.0, max(0.0, v + mod)) if i == 0 else v
-        picto(s, kind, (i % 4) * 32 + 3, 7 + (i // 4) * 11, 26, 9, live)
-        if i == 0:
-            s.vl(3 + int(v * 20) + 1, 6, 2)
-    name_line(s, 3, "FILTER", 30)
+    used = {(0, 0), (1, 0), (1, 1), (1, 2), (2, 0), (3, 0), (3, 1), (5, 0), (6, 2)}
+    playing = {(0, 0), (1, 0), (3, 1), (5, 0)}
+    queued = {(1, 1)}
+    for c in range(8):
+        x = c * 16 + 1
+        if c == 1:
+            s.fill(x, 0, 14, 2)
+        elif c == 4:
+            s.dots(x, 1, 14, 2)
+    for r in range(4):
+        for c in range(8):
+            x, y = c * 16 + 1, 4 + r * 15
+            if (c, r) in playing:
+                s.fill(x, y, 14, 13)
+                for k in range(4):
+                    s.vl(x + 5 + k, y + 3 + k, 7 - 2 * k, 0)
+            elif (c, r) in queued and blink:
+                s.rect(x, y, 14, 13)
+                s.rect(x + 2, y + 2, 10, 9)
+            elif (c, r) in used or (c, r) in queued:
+                s.rect(x, y, 14, 13)
+            else:
+                s.fill(x + 6, y + 5, 2, 2)
+    return s
+
+
+def env_shape(s, x, y, w, h, a, d, su, r):
+    """An envelope in a box of w x h dots, as core/ui.c draws it: the times by their root, two dots thick."""
+    hold, seg, base = w // 6, (w - 6 - w // 6) // 3, y + h - 1
+    x1 = x + 2 + int(math.sqrt(a) * seg)
+    x2 = x1 + 2 + int(math.sqrt(d) * seg)
+    x3 = x2 + hold
+    x4 = x3 + 2 + int(math.sqrt(r) * seg)
+    ys = min(base, y + int((1 - su) * (h - 1)) + 1)
+    for k in range(2):
+        s.poly([(x, base - k), (x1, y - k + 1), (x2, ys - k), (x3, ys - k), (x4, base - k)])
+    s.dots(x, base + 2, w, 3)
+
+
+def filter_bars(s, x, y, w, h, cut, res, env):
+    """A low-pass filter as spaced bars over ten octaves; a mark above where the envelope takes the corner."""
+    n, q = w // 3, 0.7 + res * 9.0
+    for k in range(n):
+        r = 2.0 ** ((k / (n - 1.0) - cut) * 10.0)
+        m = 1.0 / math.sqrt((1 - r * r) ** 2 + (r / q) ** 2)
+        db = max(-30.0, min(18.0, 20 * math.log10(max(m, 0.0001))))
+        bh = 1 + int((db + 30) / 48 * (h - 1))
+        s.fill(x + k * 3, y + h - bh, 2, bh)
+    if abs(env) > 0.02:
+        c2 = max(0.0, min(1.0, cut + env * 0.5))
+        s.fill(x + int(c2 * (n - 1)) * 3, y - 3, 2, 2)
+
+
+def scr_page(mod=0.0, touched=None, txt="FILTER"):
+    """Inside a device, a page that is one thing drawn as that thing: the synth's FILTER page as one filter beside
+    one envelope. mod: where an LFO has the cutoff now. touched: 'f' or 'e', the half a touched knob belongs to,
+    underlined. No steps row inside a device: the name line sits at the bottom."""
+    s = Scr()
+    filter_bars(s, 1, 10, 62, 33, 0.5 + mod, 0.55, 0.3)
+    env_shape(s, 68, 9, 58, 32, 0.05, 0.35, 0.45, 0.4)
+    if touched == "f":
+        s.hl(1, 45, 62)
+    elif touched == "e":
+        s.hl(68, 45, 58)
+    name_line(s, 3, txt, 48)
     strip(s, 6, 2, front=True)
-    steps_row(s)
     return s
 
 
@@ -489,22 +596,10 @@ def scr_chords():
 
 
 # ------------------------------------------------------------------ touch views
-def scr_touch(v=0.62, txt="1.24", live=0.74):
-    """An encoder touched or turned: its name, the value being set as the largest thing and holding still, a thin
-    bar with a fixed tick for that value and a moving mark for where modulation has it now, which encoder it is."""
-    s = Scr()
-    L(s, 2, 2, "CUTOFF")
-    XL(s, 2, 19, txt)
-    S(s, 104, 40, "KHZ")
-    s.dots(2, 51, 124, 2)
-    s.vl(2 + int(v * 123), 49, 5)
-    s.fill(1 + int(live * 123), 50, 3, 3)
-    for i in range(8):
-        if i == 0:
-            s.fill(2 + i * 16, 56, 12, 6)
-        else:
-            s.rect(2 + i * 16, 56, 12, 6)
-    return s
+def scr_touch(v=0.62, txt="1.24", live=0.74, turned=True):
+    """An encoder touched or turned inside a device: the page stays, the half the knob belongs to is underlined,
+    and the name line gives its name, then its value a moment later or as it turns. Nothing covers the page."""
+    return scr_page(v - 0.5, touched="f", txt=txt + "KHZ" if turned else "CUTOFF")
 
 
 def scr_wheel():
@@ -520,12 +615,13 @@ def scr_wheel():
 
 
 def scr_step():
-    """A step held: its notes named large, what is set on it in one line."""
+    """A step held: the page stays, now showing that step's values; the box says S and the step's number in
+    place of the track's, at the same width, and the line names the step's notes."""
     s = Scr()
-    L(s, 2, 2, "C3 E3 G3")
-    S(s, 2, 24, "CHANCE 75  1:2  X2")
-    S(s, 2, 34, "LOCKS 2")
-    strip(s, 4, 0, y=47)
+    for i, (kind, pv) in enumerate(FILTER):
+        picto(s, kind, (i % 4) * 32 + 3, 7 + (i // 4) * 11, 26, 9, pv)
+    name_line(s, "S5", "C MAJ", 30)
+    strip(s, 6, 2, front=True)
     steps_row(s, steps="n...L..%n.k.c.n.", playstep=None, held=4)
     return s
 
@@ -639,13 +735,11 @@ def _icons():
 
 
 def scr_shift():
-    """Shift held: the sixteen step icons, large, as the steps lie. No words until one is pressed."""
-    s = Scr()
-    for i, fn in enumerate(_icons()):
-        fn(s, 2 + (i % 8) * 16, 10 + (i // 8) * 30)
-    for b in range(4):
-        s.hl(b * 32 + 2, 27, 12)
-        s.hl(b * 32 + 2, 57, 12)
+    """Shift held: the view stays, with S in the corner. The step icons are printed on the surface and light there."""
+    s = scr_chain_rest()
+    s.fill(115, 31, 13, 15, 0)
+    s.fill(117, 33, 11, 11)
+    S(s, 120, 35, "S", 0)
     return s
 
 
@@ -850,35 +944,44 @@ SCREENS = [
      "The four tracks of the bank, a row each in the order of the track buttons, each its own page and playhead. "
      "The track's number large at the left, the selected one boxed."),
     ("note-device-view", "The chain: at rest, then the wheel turned", scr_chain_rest,
-     "Home in Note Mode. At rest there is no belt: the page marks along the top, a box a device, say where the "
-     "wheel is; under them the eight macros the encoders turn; then the track's number boxed and the device's "
-     "name. Turn the wheel and the belt comes up: the devices ride it in signal order into the machine at the "
-     "right, which is MIX, and the one under the wheel stays in the middle. A second after the last click the "
+     "Home in Note Mode. At rest there is no belt, no marks and no name: the main page as eight big boxes, one "
+     "a knob, down to the steps row: the main page of the device under the wheel, which is what the encoders "
+     "turn. Here the wheel is on MACROS. Turn the wheel and the belt comes up: the devices ride it in signal order, MIX the last of them, "
+     "and the one under the wheel stays in the middle. A second after the last click the "
      "belt is gone again. The steps row: solid a note, dithered a chance, hollow a condition, a triangle a lock "
      "with no note."),
     ("chain-belt", "The chain's belt, while the wheel turns", scr_chain,
      "What a turn of the wheel shows at the chain, and only while it turns: the track's devices as boxes on a "
-     "conveyor, the one under the wheel in the middle, its name large, MIX the machine the belt runs into."),
+     "conveyor, the one under the wheel in the middle, its name large. MIX is the last box and rides the belt as "
+     "the others do."),
     ("belt-pick", "A picker belt", scr_belt,
      "Where the wheel chooses one of several kinds of thing, the kinds ride a conveyor as boxes of pixel art, after "
      "EvilGenius: the chosen one large in the middle, its name large under the belt. Here the pad layouts of "
      "Shift + Step 8. A turn moves the belt a box; a press takes the one in the middle."),
     ("belt-session", "Session Mode's belt", scr_sbelt,
-     "The wheel touched or turned in Session Mode: the mixer's pages (SCOPES, LEVEL, PAN, SEND A, SEND B), then "
-     "each bus's effects, riding into OUT at the right. A page is live as it reaches the middle; an effect is "
-     "entered with a press. Let go, and the screen goes back to the meters."),
+     "The wheel turned in Session Mode: CLIP, TRACK, LEVEL, PAN, SEND 1, SEND 2, SEND 3. A page is live as it "
+     "reaches the middle. Let go, and the screen is that page again."),
+    ("session-clip", "Session Mode: CLIP", scr_sclip,
+     "Home in Session Mode: RemoteFM4Move's session view. The eight tracks across, the four scenes on the pads "
+     "down; a bar over the selected track, dashed over a muted one; playing filled with a black play mark; queued "
+     "doubled and blinking; a clip outlined; an empty slot a dot. The pads launch."),
     ("param-page", "A device page at rest", scr_page,
-     "Inside a device: its page as eight pictograms, two rows of four as the encoders lie, each drawing its own "
-     "value, with no words. The page's name large. The strip: a square for the device's preset, then a segment a "
-     "page."),
+     "Inside a device: a page that is one thing is drawn as that thing, large, and moves as its knobs turn. The "
+     "synth's FILTER page is one filter as spaced bars, the dot above them where the envelope takes the corner, "
+     "beside its envelope. No steps row; the page's name at the bottom. The strip: a square for the device's "
+     "preset, then a segment a page. A page of unrelated values is eight pictograms."),
+    ("chain-card", "A knob touched at the chain", scr_card,
+     "At the chain, or on a page of pictograms, a touched or turned knob takes the whole screen: its name, its "
+     "value as the largest thing, its pictogram drawn large with the unit under it, the bar of where it stands, "
+     "and which of the eight it is. A second after it is let go the boxes are back."),
     ("param-touch", "An encoder touched or turned", scr_touch,
-     "The touched parameter takes the screen: its name, its value as the largest thing, its unit, and eight marks "
-     "showing which encoder it is. It stays for a second after the encoder is let go."),
-    ("wheel-touch", "The wheel touched", scr_wheel,
-     "Where you are, in words: track, device, page and its place. With Speech on Jog this is also said."),
+     "In a rest view the page stays on the screen and the name line gives the touched encoder's name, then its "
+     "value 0.6 s into the touch, or at once as it turns, so the picture is seen to change. On a page of pictograms the touched one is "
+     "inverted; on a page drawn as one thing, a line under the half the knob belongs to. A second after the "
+     "encoder is let go the line is the page's name again."),
     ("shift-map", "Shift held", scr_shift,
-     "The sixteen step icons drawn large, two rows of eight as the steps lie, a line under each beat. Pressing one "
-     "shows its name large."),
+     "Nothing of its own: the view stays, with S in the corner. The step icons are printed on the surface and "
+     "light there. Pressing one shows its name large."),
     ("hint-copy", "Copy held", scr_copy,
      "A held modifier is its picture and its one word. The lights on the surface are the list of what it can act "
      "on; the screen does not spell it out."),
@@ -887,8 +990,9 @@ SCREENS = [
     ("browser", "A list", scr_browser,
      "The item under the wheel large, its neighbours small above and below, where the list is at the bottom."),
     ("step-held", "A step held", scr_step,
-     "The step's notes named large; one smaller line for what is set on it. Turning a control shows that value "
-     "alone, as an encoder does. The held step is framed in the steps row."),
+     "The page stays and shows the held step's values. The box at the left of the name line says S and the "
+     "step's number in place of the track's, at the same width; the line names its notes, or the value being "
+     "set. The held step is framed in the steps row."),
     ("loop-pages", "Loop Mode", scr_loop,
      "The clip's pages as boxes, the shown one inverted, a + after the last; the length large. The corner symbol "
      "says Loop Mode is latched. The steps row is the last page: five steps, the rest dark."),
@@ -922,13 +1026,15 @@ ANIM = {
     "chain-belt": ([(scr_chain(4, o), 45) for o in (22, 15, 9, 4, 1)] + [(scr_chain(4, 0), 1400)]
                    + [(scr_chain(5, o), 45) for o in (22, 15, 9, 4, 1)] + [(scr_chain(5, 0), 1400)]
                    + [(scr_chain(4, o), 45) for o in (-22, -15, -9, -4, -1)]),
-    "belt-session": ([(scr_sbelt(3, 0), 1200)] + [(scr_sbelt(4, o), 45) for o in (22, 15, 9, 4, 1)]
-                     + [(scr_sbelt(4, 0), 1200)] + [(scr_sbelt(3, o), 45) for o in (-22, -15, -9, -4, -1)]),
+    "session-clip": [(scr_sclip(0, i % 2 == 0), 250) for i in range(4)],
+    "belt-session": ([(scr_sbelt(0, 0), 1200)] + [(scr_sbelt(1, o), 45) for o in (22, 15, 9, 4, 1)]
+                     + [(scr_sbelt(1, 0), 1200)] + [(scr_sbelt(0, o), 45) for o in (-22, -15, -9, -4, -1)]),
     "belt-pick": ([(scr_belt(2, 0), 1200)] + [(scr_belt(3, o), 45) for o in (22, 15, 9, 4, 1)]
                   + [(scr_belt(3, 0), 1200)] + [(scr_belt(2, o), 45) for o in (-22, -15, -9, -4, -1)]),
     "sampling": [(scr_sampling(i * 0.35), 120) for i in range(6)],
     # the number is the value set by hand and holds still; only the mark for the modulated value moves
-    "param-touch": [(scr_touch(0.62, "1.24", 0.62 + 0.14 * math.sin(i * math.pi / 4)), 120) for i in range(8)],
+    "param-touch": ([(scr_touch(0.62, "1.24", 0.62, turned=False), 900)]
+                    + [(scr_touch(0.62 + 0.03 * i, "%.2f" % (1.24 + 0.2 * i), 0.62 + 0.03 * i), 160) for i in range(6)]),
     # at rest the cutoff's pictogram moves as the LFO sweeps it, against the fixed tick of the value set by hand
     "param-page": [(scr_page(0.16 * math.sin(i * math.pi / 4)), 120) for i in range(8)],
     "view-scene": [(scr_scene(i * 0.33), 140) for i in range(6)],
@@ -936,3 +1042,95 @@ ANIM = {
     "view-scope": [(scr_scope(i * 0.5), 140) for i in range(6)],
     "map-row": [(scr_map(d, t), 140) for d, t in ((0.1, "+10"), (0.2, "+20"), (0.3, "+30"), (0.4, "+40"))],
 }
+
+
+# ------------------------------------------------------------------ Screen system 2 (24 November 2026)
+# The owner's screen rules, drawn by redesign.py (which refuses text that does not fit its slot). These replace the
+# mock-ups above where the two differ, and add the screens the redesign brought in.
+import redesign as R  # noqa: E402
+
+_N = 24
+
+
+def _sw(f, a=0.35, c=0.5):
+    return c + a * math.sin(f / float(_N) * 2 * math.pi)
+
+
+S2 = [
+    ("note-device-view", "The chain at rest",
+     lambda: R.chain_rest(R.PARAMS["SUB  MAIN"], 0),
+     [(R.chain_rest(R.PARAMS["SUB  MAIN"], f / _N), 110) for f in range(_N)],
+     "Home in Note Mode, nothing touched: the main page of the device under the wheel as eight icons, as the "
+     "knobs lie, each drawing what it does and moving with modulation (here the cutoff swept by an LFO). No name, "
+     "no track number, no marks: the belt names the device when the wheel turns, the card names a knob when "
+     "touched. The steps row under them."),
+    ("param-page", "A page drawn as one thing: FILTER",
+     lambda: R.filter_scene(0.2), [(R.filter_scene(f / 32.), 80) for f in range(32)],
+     "Inside SUB on FILTER: one filter of spaced bars beside its envelope. The bars follow the cutoff as the "
+     "envelope sweeps it, a tick where the knob has it, a dot where the envelope takes it; a box rides the "
+     "envelope with the newest note. Page marks on top, the page's name in its slot, no track number."),
+    ("page-amp", "A page drawn as one thing: AMP",
+     lambda: R.amp_scene(0.2), [(R.amp_scene(f / 32.), 80) for f in range(32)],
+     "Inside SUB on AMP: one wide envelope with the box riding it as a note plays and is let go; the level beside "
+     "it, its fill the note's loudness. Any page past the main one that holds an envelope is drawn this way."),
+    ("page-trig", "A page of icons: TRIG",
+     lambda: R.page_rest(R.PARAMS["SEQ  TRIG"], "TRIG", 0, 2, 0, chosen=[0, 0, 0, 3, 3, 0, 0, 1]),
+     [(R.page_rest(R.PARAMS["SEQ  TRIG"], "TRIG", 0, 2, f / _N, chosen=[0, 0, 0, 3, 3, 0, 0, 1]), 110)
+      for f in range(_N)],
+     "Inside SEQ on TRIG: micro (a note beside the step line), ratchet (a step split, one dot between strikes), "
+     "chance (a rolling die and its percentage), condition (a:b as two groups of boxes either side of a colon); "
+     "function (a sign above the steps, the playhead moving as it moves it), amount, length, slide."),
+    ("param-touch", "A knob touched: the card",
+     lambda: R.card("CUTOFF", 0.5, 0), [(R.card("CUTOFF", _sw(f), f / _N), 100) for f in range(_N)],
+     "Any knob touched or turned, anywhere: its NAME (2x, 10 characters) on top, its ICON in the middle (the "
+     "page's icon, each dot doubled) moving with modulation, its VALUE in a white strip (2x, 10 characters with "
+     "the unit). A second after it is let go the view comes back."),
+    ("chain-card", "The card: FUNCTION",
+     lambda: R.card("FUNCTION", 0, 0, chosen=3), [(R.card("FUNCTION", 0, f / _N, chosen=3), 100) for f in range(_N)],
+     "FUNCTION's sign has its own band above the steps (a solid arrowhead), and the playhead moves through them as "
+     "the function moves it. The value has its own strip, so nothing is written over the picture."),
+    ("card-chance", "The card: CHANCE",
+     lambda: R.card("CHANCE", 0.62, 0), [(R.card("CHANCE", 0.62, f / _N), 100) for f in range(_N)],
+     "CHANCE: a die rolling, a new face each roll, beside the percentage."),
+    ("card-condition", "The card: CONDITION",
+     lambda: R.card("CONDITION", 0, 0, chosen=3), [(R.card("CONDITION", 0, f / _N, chosen=3), 100) for f in range(_N)],
+     "CONDITION 2:4: four boxes with the second filled, a colon, four boxes all filled; the pass the loop is on "
+     "underlined."),
+    ("card-ratchet", "The card: RATCHET",
+     lambda: R.card("RATCHET", 3 / 7., 0), [(R.card("RATCHET", (f // 3) / 7.0, f / _N), 100) for f in range(_N)],
+     "RATCHET: one step split into its strikes, 1 to 8, whole dots each and one dot between, always."),
+    ("card-direction", "The card: DIRECTION",
+     lambda: R.card("DIRECTION", 0, 0, chosen=2), [(R.card("DIRECTION", 0, f / _N, chosen=2), 100) for f in range(_N)],
+     "DIRECTION PENDULUM: one line with a solid head at each end, above the steps; the playhead bounces."),
+    ("card-send", "The card: SEND",
+     lambda: R.card("SEND 1", 0.32, 0), [(R.card("SEND 1", 0.32, f / _N), 100) for f in range(_N)],
+     "SEND 1: a bar filled as far as the send, flowing into the bus's box with its number in it."),
+    ("card-level", "The card: a track's level",
+     lambda: R.card("MIX LEVEL", 0.76, 0), [(R.card("MIX LEVEL", 0.76, f / _N), 100) for f in range(_N)],
+     "LEVEL in Session Mode or the mixer: the track's live meter lying down, the level a tall mark across it."),
+    ("step-held", "A step held",
+     lambda: R.held_step(0), [(R.held_step(f / _N), 110) for f in range(_N)],
+     "A step held at the chain: the icons give up height to the step card, S4 in its 3-character box and the "
+     "notes or chord in a 7-character slot; the held step framed in the steps row."),
+    ("flow-page-turn", "The wheel turned while a knob is touched",
+     lambda: R.page_flash("AMP", 3, 5),
+     ([(R.card("CUTOFF", 0.5, f / 10.), 100) for f in range(10)] + [(R.page_flash("AMP", 3, 5), 600)]
+      + [(R.card("ATTACK", 0.25, f / 10.), 100) for f in range(14)]),
+     "CUTOFF's card; the wheel turns to AMP, which shows for 0.6 s with its place among the pages; then the card "
+     "of the same knob on AMP. The finger never leaves the knob."),
+    ("pop-track", "A track chosen",
+     lambda: R.track_pop(3, "SYNTH", "WARM PAD 2", 0),
+     ([(R.track_pop(3, "SYNTH", "WARM PAD 2", 0), 800)]
+      + [(R.track_pop(3, "SYNTH", "WARM PAD 2", o), 100) for o in range(0, 40, 4)]
+      + [(R.track_pop(3, "SYNTH", "WARM PAD 2", 36), 800)]),
+     "The only place the track's number appears: in a box the height of the screen at 3x, then the type and the "
+     "preset (which slides inside its 6-character slot when longer), and the type's picture. Shown for a second "
+     "when the track changes, and while a track button is held."),
+]
+_pos = {k: i for i, (k, _n, _f, _d) in enumerate(SCREENS)}
+for _k, _name, _fn, _frames, _desc in S2:
+    if _k in _pos:
+        SCREENS[_pos[_k]] = (_k, _name, _fn, _desc)
+    else:
+        SCREENS.append((_k, _name, _fn, _desc))
+    ANIM[_k] = _frames

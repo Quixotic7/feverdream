@@ -1,6 +1,6 @@
 # Feverdream: UI/UX design
 
-Draft 34, 24 November 2026. Status: proposal for review. Nothing here is built yet.
+Draft 36, 25 November 2026. Status: proposal for review. Nothing here is built yet.
 
 Feverdream is a standalone groovebox for Ableton Move. It runs in place of Move's own software, as EvilGenius and
 RemoteFM1 do. This document describes how it is played: what every control does, what the screen and LEDs say, and how
@@ -28,7 +28,7 @@ That gives nine rules. Every later section is an application of them.
    - *Hold a thing, then turn or press.* While a step, pad, clip or track is held, the controls edit that thing only.
    - *Modifier plus target.* Copy, Delete, Mute or Shift held, then the thing to act on.
 3. **Three questions always answered.** Where am I? What do the controls do right now? What just happened? The first is
-   answered by the picture on the screen and, in words, by a touch of the wheel; the second by the lights and by
+   answered by the picture on the screen and, said aloud, by a touch of the wheel; the second by the lights and by
    touching the control; the third by a message that takes the screen for a second.
 4. **Modifiers explain themselves.** Holding Shift, Copy, Delete, Mute or Loop shows a hint card on the screen and
    lights the controls that are valid targets. A player never has to remember a combination; holding the modifier
@@ -42,7 +42,9 @@ That gives nine rules. Every later section is an application of them.
    screen. Every view, popup, value and change of state is written as words first; the screen draws them and the
    voice says them. Nothing is shown that cannot be said (section 3.4).
 8. **Big, simple, told on touch.** The screen is small, so nothing depends on small text. At rest it is a picture.
-   A touched knob or wheel takes the whole screen and says what it is, large (section 3.1).
+   A touched knob is named large in the rest view's one line, and its value stands there while it turns; the
+   picture above stays, so the change is seen (section 3.1). A touched wheel draws nothing: it is said, and
+   the screen is left for the belt.
 9. **Modulation is seen; the hand's value holds still.** A parameter moved by a macro, a step lock, an envelope or
    an LFO is drawn moving. A touched knob always shows the value being set (section 3.1).
 
@@ -95,7 +97,7 @@ One more of the same kind, proposed here:
   press. In Sampling Mode the recording starts on the press; released inside the window it keeps recording until the
   next press, held past it the recording stops on release.
 
-Encoder and wheel touch is not a button press and is not covered: a touch shows its parameter at once, as on Move.
+Encoder touch is not a button press and is not covered: a touch shows its parameter at once, as on Move.
 
 ### 1.2 The owner's standing rules
 
@@ -107,8 +109,8 @@ Feverdream:
 | The measure | UX = (intent x feedback x continuity) / (learning + noise). Feedback comes first | every section below is judged by it |
 | R1 Feedback at once | every input gives an immediate visible change; a message never waits for the release of the control that caused it; a control with nothing to do in a layer is dark | the press light of 1.1; toasts appear on the action, not on let-go; dead controls are unlit |
 | R3 A layer takes what it uses | a layer that uses some knobs takes all eight, some pads all pads, some steps all steps; the ones with no job are dark and dead. A layer that draws a menu takes the jog wheel and Back closes it. A menu's jog selects, its click edits, click again selects | hint-card layers, menus, Loop Mode and Sampling Mode all follow it; nothing falls through a half-used group |
-| R4 A knob in use is lit | the light under a knob is on whenever something uses it | encoder lights: on when the encoder has a job, red when its parameter is automated [M], off when dead |
-| R5 A knob says what it does | touching shows its name, turning shows its value; where there is a picture, it must show which knob does what and the value changing | the touch view (section 3.1): the name, the value large, and eight marks showing which encoder it is |
+| R4 A knob in use is lit | the light under a knob is on whenever something uses it | encoder lights: as bright as the encoder's value when it has a job (section 3.2), red when its parameter is automated [M], off when dead |
+| R5 A knob says what it does | touching shows its name, turning shows its value; where there is a picture, it must show which knob does what and the value changing | the touch view (section 3.1): the name, the value large, and in Note Mode the parameter's pictogram large; the hand on the knob says which one it is |
 | R6 The icon under a step | lit when the step is a function, dark when it is a step, a track, a page or a length. A function goes on the step whose printed icon means it. At rest no icon is lit | the Shift map (section 11); in Session Mode the steps are tracks, so their icons stay dark |
 
 ## 2. What a project is
@@ -146,40 +148,93 @@ Move swaps a synth for a Melodic Sampler when you sample into it [15.3]. Undo br
 ### 3.1 The screen: big, one thing, told on touch
 
 The Move's screen is 128 x 64 dots on a panel about three centimetres wide. Small text on it is hard to read, so
-Feverdream does not rely on any. Three rules govern every screen.
+Feverdream does not rely on any. The screens follow **Screen system 2** (24 November 2026, the owner's rules; drawn
+by `design/tools/redesign.py`, which refuses a text that does not fit its slot).
 
-1. **Pictures at rest, words on touch.** With nothing touched, the screen is a picture: the track's macros at
-   the chain, a page as eight pictograms, the clips as a grid. Words appear when a control is touched or turned, and they are about that
-   control.
-2. **One thing, full screen.** Whatever is being touched or changed takes the whole screen: its name large, its
-   value larger. There are no dense pages, no boxes inside boxes and no status line of small print.
-3. **Big type only.** Three sizes: the one number that matters at about half the screen's height, names and words at
-   about a quarter, and a single smaller line where a second fact is needed. No more than three lines of text are
-   ever on the screen. A name too long for its line slides.
+1. **Pictures at rest, words on touch.** With nothing touched, the screen is a picture: the main page's icons at
+   the chain, a page's icons or the one thing a page is, the clips as a grid. Words appear when a control is
+   touched or turned, and they are about that control.
+2. **One thing, full screen.** Whatever is being touched or changed takes the whole screen. There are no dense
+   pages, no boxes inside boxes and no status line of small print.
+3. **Text in slots.** Every text has a place drawn in advance, a size that never changes, and a length it may not
+   pass. Text never overlaps anything. A size is never changed to fit a longer or shorter name: the name is written
+   to fit (a parameter's at most 10 characters), and a name the player chooses, such as a preset's, slides inside
+   its slot.
+4. **Icons say what they mean and move.** Each parameter draws what it does, and moves whenever what it draws is
+   modulated. No two parameters on a page share a drawing; nothing stands in as a plain bar.
+5. **No track number at rest.** It appears only in the track popup, when the track changes.
+
+**The type.** One face, Move Designer's Pixel 5 x 7. A role has one scale and one slot:
+
+| Role | Scale | Slot (dots) | At most |
+|---|---|---|---|
+| A name (parameter, page, device) | 2x | 126 x 14 | 10 characters |
+| A value with its unit, in the value strip | 2x, black on white | 124 x 14 | 10 characters |
+| The track's number, in the track popup | 3x | 36 x 21 | 2 characters |
+| The track's type and preset, in the popup | 2x | 82 x 14 | 6; a preset slides |
+| A held step's box | 2x | 34 x 14 | 3 (`S16`) |
+| A held step's notes or chord | 2x | 86 x 14 | 7 |
+| A number inside an icon (CHANCE's percentage) | 1x, doubled with the icon on the card | the icon's box | 4 |
 
 **The rest view** of any place has the same parts:
 
 | Part | Is |
 |---|---|
-| The page marks | along the top edge: where you are in this mode. A mark a page, the current one thick; at the chain a small box a device, the current one filled |
-| The picture | what this place is: the track's macros at the chain, a device's theme, a page's eight pictograms, the clip grid |
-| One large line | the name of what the wheel is on, with the track's number in a box at its left |
-| The steps row | the 16 steps of the page shown, as marks: Move's loop bars [12.1] and RemoteFM1's steps row together |
-| The corner | at the top right, one symbol when a state is latched: Shift, Loop, Fill, Record, the map row |
+| The page marks | along the top edge, inside a device and in Session Mode: a mark a page, the current one thick. None at the chain: the belt, while it turns, shows where the wheel is |
+| The picture | at the chain the main page of the device under the wheel as eight icons, one a knob, as the knobs lie, no outlines; inside a device a page's eight icons, or a page drawn as the one thing it is (section 6.1); a device's theme; the clip grid |
+| The name slot | inside a device the page's name at the bottom (2x, 10 characters). Nothing at the chain. No track number anywhere |
+| The step card | while a step is held: `S4` in its box and the step's notes or chord beside it, under the icons, which give up height for it |
+| The steps row | at the chain: the 16 steps of the page shown, as marks: Move's loop bars [12.1] and RemoteFM1's steps row together. Not inside a device |
+| The corner | at the bottom right, one symbol when a state is latched (Shift, Loop, Fill, Record, the map row), in a notch cut from what is under it |
 
-![The chain at rest, then the wheel turned](img/note-device-view.png) ![A device page at rest](img/param-page.png)
+![The chain at rest](img/note-device-view.png) ![A page of icons: TRIG](img/page-trig.png)
 
-**The touch views** replace the rest view while a control is touched and for a second after:
+![A step held](img/step-held.png)
+
+**Touch: the card.** A touched or turned knob takes the whole screen, anywhere, for as long as it is touched and a
+second after. The card has three slots, the same for every parameter:
+
+| Slot | Holds |
+|---|---|
+| NAME, dots 1-14 | the parameter's name, 2x, at most 10 characters |
+| ICON, dots 18-45 | the page's icon for that knob, each dot doubled, moving with modulation; the value under the hand holds still |
+| VALUE, dots 48-63 | a white strip, the value in black at 2x with its unit, at most 10 characters (`0.73 KHZ`, `PENDULUM`, `-7 ST`) |
+
+There is no row of eight knob marks: the hand on the knob says which one it is. In Session Mode the card's icon for a
+level is the track's live meter with the level a mark across it; for a pan or a send, its own icon. On a page drawn
+as one thing and with a step held, the touch is told the same way (the card), so a touch always shows the name, the
+value and the icon.
+
+![A knob touched: the card](img/param-touch.png) ![The card: FUNCTION](img/chain-card.png)
+
+![CHANCE](img/card-chance.png) ![CONDITION](img/card-condition.png) ![RATCHET](img/card-ratchet.png)
+
+![DIRECTION](img/card-direction.png) ![SEND](img/card-send.png) ![A track's level](img/card-level.png)
 
 | Touched | The screen |
 |---|---|
-| An encoder | its parameter: the name large, the value being set as the largest thing, a thin bar for where modulation has it now, and a row of eight marks showing which encoder it is. This is all a turn ever shows [M, and rule R5] |
-| The wheel | where you are, in words: the track, the device, the page and its place (`3 BASS`, `DRIFT`, `FILTER 3/6`). With Speech on Jog, this is also said |
+| A knob | the card, as above |
+| A knob, then the wheel turned to another page | that page for 0.6 s, its name and its place among the pages; then the card of the same knob on the new page (section 6) |
+| The wheel | nothing: the rest view stays, so that a turn shows the belt from its first click. Where you are is said, with Speech on or on Jog |
 | Volume | the level it sets and its meter |
-| A step, held | the step: its notes or chord named large, with marks for what is set on it (section 7.2) |
-| A modifier, held | its picture and its one word (section 3.3) |
+| A step, held | the step card in the rest view (section 7.2) |
+| A track button, held, or the track changed | the track popup: its number at 3x in a box the height of the screen, its type, its preset, its type's picture (section 4) |
+| A modifier, held | Copy, Delete and Mute: its picture and its one word (section 3.3). Shift: nothing of its own |
 
-![An encoder touched](img/param-touch.png) ![The wheel touched](img/wheel-touch.png)
+![The wheel turned while a knob is touched](img/flow-page-turn.png) ![A track chosen](img/pop-track.png)
+
+**The icons.** Each parameter has one drawing, made for any box: 30 x 21 dots on a page of eight, doubled on the
+card. Some of them: CUTOFF a low-pass corner; RESONANCE the peak at it; ENV AMT an arrow with a solid head, just
+above the filter's bottom line, from the corner to where the envelope takes it; an envelope's part drawn thick (a
+filter's envelope shaded under its line, an amp's bare); WAVE the wave itself, running; DETUNE two waves drifting
+apart; NOISE dots as dense as the noise; LEVEL a volume wedge filled; TUNE a ruler of semitones with the pitch
+marked; KEY and SCALE an octave of keys where a note in the key or scale is filled, a white key below the black
+keys and a black key solid (hollow when not); MICRO a note beside the step's line; RATCHET a step split into its
+strikes, one dot between them always; CHANCE a rolling die and its percentage; CONDITION a:b as two groups of b
+boxes either side of a colon, box a filled on the left, all filled on the right, the pass now underlined;
+FUNCTION and DIRECTION a sign above the steps (solid arrowheads, a pendulum one line with a head at each end) and
+the playhead moving through them as the setting moves it; SEND a bar filled as far as the send, flowing into the
+bus's box with its number in it. The full set is on the design canvas and drawn by `redesign.py`.
 
 **Live values: what moves, and what holds still.** A parameter that is being moved by something other than the
 hand is seen moving. This is a rule, not an ornament: modulation is invisible otherwise.
@@ -190,10 +245,9 @@ hand is seen moving. This is a rule, not an ornament: modulation is invisible ot
 - **The value set by hand is still there**, as a fixed mark on the pictogram, so the swing is seen against where
   the knob stands.
 - **A touched knob always shows the value being set.** The moment an encoder is touched, the number on the screen
-  is the value the hand controls and nothing else, and it holds still. It never shows the modulated value, so the
-  number never runs away from the fingers.
-- While the knob is touched the modulation is not hidden: a thin bar under the number carries a fixed tick for the
-  set value and a moving mark for the live one. The text holds still; only the mark moves.
+  is the value the hand controls and nothing else, and it holds still, and so does its pictogram or its part of
+  the page's picture. It never shows the modulated value, so the value never runs away from the fingers.
+- While the knob is touched the value and its part of the icon hold still; the rest of the picture keeps moving.
 - At the chain the macros follow the same rule, and so does a macro's own knob when it is touched.
 - For a parameter with a value for each voice, what is shown is the newest note's.
 
@@ -230,6 +284,15 @@ Feverdream adds three meanings, each a variation of one above:
 Default track colours run warm to cool so the two banks look different at a glance: tracks 1-4 orange, amber, yellow,
 chartreuse; tracks 5-8 turquoise, sky, periwinkle, purple. None is close to green, red, pink or blue.
 
+
+**The knob lights are as bright as their values** (Screen system 2, the owner's). Each knob's light is its value,
+from the lowest lit step to full, in the palette's steps of the device's colour; the lowest step is still lit, so a
+knob at zero is never taken for one with no job, which stays dark (R4). A value from the middle (pan, tune, amount,
+envelope amount) is dimmest at the middle and brighter either way; a choice is a step a choice. The light follows
+the value the sound is using now, so an LFO on the cutoff pulses its knob; the touched knob holds still and is
+white at its value's brightness. In Session Mode each knob is in its track's colour at its value on the page shown;
+on CLIP all eight glow low and steady, the selected track's white.
+
 ### 3.3 Hint cards
 
 A modifier that is held (section 1.1) takes the screen with its picture and its one word, and lights every valid
@@ -240,7 +303,7 @@ Speech reads it for whoever wants it.
 
 | Held | Screen | LEDs |
 |---|---|---|
-| Shift, or Note/Session | the sixteen step icons, drawn large in two rows of eight as the steps lie. Pressing one shows its name large | printed step icons light [M]; track buttons show the other bank |
+| Shift, or Note/Session | nothing of its own: the view stays, with S in the corner. The step icons are printed on the surface and light there. Pressing one shows its name large | printed step icons light [M]; track buttons show the other bank |
 | Copy | two sheets and `COPY` | steps, pads, clips, the wheel (device) |
 | Delete | scissors and `DELETE` | the same, plus encoders that have automation |
 | Mute | a struck speaker and `MUTE` | track buttons; encoder LEDs show automation status [M, 14.2.2] |
@@ -300,33 +363,36 @@ chosen one large in the middle, its name under the belt, the wheel moving it a b
 belt as its one picture for choosing among kinds of thing.
 
 - **The belt shows only while the wheel turns.** It comes up at the first click of a turn and goes a second after
-  the last. At rest there is no belt on the screen: the mode's own picture is there, and the **page marks** along
-  the top edge say where the wheel is. A touch of the wheel with no turn gives the place in words, as before.
+  the last. At rest there is no belt on the screen: the mode's own picture is there. Inside a device and in
+  Session Mode the **page marks** along the top edge say where the wheel is; at the chain there are none, since
+  marks over a device's main page read as pages of that device. A touch of the wheel with no turn draws nothing; the place is said (section 3.1).
 - **While it shows, the belt has the whole screen** (rule 8: one thing, full screen). The chosen box is drawn at
   twice the size of its neighbours, more than half the screen's height, and the name fills the rest. Nothing else
   is drawn with it: no steps row, no marks.
 - **The belt moves; the choice stays in the middle.** A turn of the wheel slides the belt one box, on a spring, in
-  under a fifth of a second. The eye never has to follow a cursor across the screen.
+  under a fifth of a second. The eye never has to follow a cursor across the screen. This holds for every box,
+  the last included: nothing is fixed at an end of the belt.
 - **A box is pixel art, not a word.** Each kind has its own small picture; the chosen box is large enough to read
   it. The name of the chosen one stands large under the belt, and is said (rule 7).
 - **A press takes the box in the middle. Back leaves** with nothing changed.
-- **A box that is a device or a kind is entered with a press**, and until then the encoders keep their job, as in
-  EvilGenius. **A box that is a page is live as it reaches the middle**, as a page inside a device is. Session
-  Mode's belt has both (section 8.2).
-- The page marks say how long the belt is and where the choice is on it, with the belt up or not: one mark a box,
-  in the belt's order.
+- **What the belt shows chosen is what the knobs turn.** A box that is a device is live as it reaches the middle:
+  the encoders and the pictograms are that device's main page at once, with no press, and the name under them is
+  its name. A press enters it, for its other pages. A box that is a page is live in the same way. Only a box
+  that is a kind to choose (a pad layout, a track type, a device to add) waits for its press.
+- Where a belt has page marks (Session Mode's), they say how long the belt is and where the choice is on it,
+  with the belt up or not: one mark a box, in the belt's order. The chain has none at rest.
 - With Reduce Motion the belt jumps a box with no slide.
 
 Where the belt is used:
 
-| Belt | Boxes | Runs into |
-|---|---|---|
-| **The chain** (section 6) | the track's devices, in signal order, each box its theme's emblem | the machine at the right: MIX, the last device, where the sound leaves |
-| **Session Mode's wheel** (sections 8.2, 8.3) | the mixer's pages SCOPES, LEVEL, PAN, SEND A, SEND B, then each bus's effects | the machine at the right: OUT, the limiter and the way out |
-| **Pad layouts** (Shift + Step 8) | In Key, Chromatic, Keyboard, Chords, Progression, Perform | |
-| **Track types** (Track Setup) | Synth, Sampler, Sample Kit, Synth Kit, MIDI, FX Bus, Audio Loops | |
-| **Adding a device** (a press on a +) | the kinds of device that fit that place; a press opens that kind's list | |
-| **Tools** (Shift + Step 13) | transpose, shift, reverse, randomize and the rest | |
+| Belt | Boxes |
+|---|---|
+| **The chain** (section 6) | the track's devices, in signal order, each box its theme's emblem; the last box is MIX, where the sound leaves |
+| **Session Mode's wheel** (sections 8.2, 8.3) | CLIP, TRACK, LEVEL, PAN, SEND 1, SEND 2, SEND 3 |
+| **Pad layouts** (Shift + Step 8) | In Key, Chromatic, Keyboard, Chords, Progression, Perform |
+| **Track types** (Track Setup) | Synth, Sampler, Sample Kit, Synth Kit, MIDI, FX Bus, Audio Loops |
+| **Adding a device** (a press on a +) | the kinds of device that fit that place; a press opens that kind's list |
+| **Tools** (Shift + Step 13) | transpose, shift, reverse, randomize and the rest |
 | **Views** | Chain, Scene, Scope, Scope 8, Tracks, shown for a moment as the track button steps through them | |
 
 A belt is for a handful of kinds that each deserve a picture. Things with names and no pictures, such as presets,
@@ -341,10 +407,10 @@ does the same with two banks: **A** is tracks 1-4, **B** is tracks 5-8.
 
 | Gesture | Does | |
 |---|---|---|
-| Track button | select that track in the current bank; enter Note Mode | [M] |
+| Track button | select that track in the current bank; enter Note Mode. The track popup shows for a second | [M] |
 | The selected track's button again, inside a device | the map row: on, its other side, off (section 6.7) | [New] |
 | The selected track's button again, at the chain | the next view: Chain, Scene, Scope, Scope 8, Tracks (section 6.9) | [New] |
-| Track button held | view the track while held, without selecting it | [M] |
+| Track button held | view the track while held, without selecting it: the track popup, its number, type and preset (section 3.1) | [M] |
 | Track button held + Volume | track volume | [M] |
 | Mute + track button | mute | [M] |
 | Shift + Mute + track button | solo | [M] |
@@ -395,26 +461,29 @@ Export [New]. Rename uses Move's wheel keyboard from the Wi-Fi password screen [
 ## 6. Note Mode: devices
 
 A track is a chain of devices, as a track in Live is. When the wheel turns, the chain is a belt (section 3.5): the
-devices ride it in signal order into MIX. At rest the screen shows the track's eight macros, which are what the
-encoders turn at the chain, with the page marks along the top, a box a device, and the name of the device under
-the wheel. Move's Device View shows a track's devices as a row of icons in
+devices ride it in signal order into MIX. At rest the screen shows the main page of the device under the wheel, which is what the
+encoders turn, as eight big pictograms, one a knob, with no outlines, no name and no marks: a turn of the wheel brings up the
+belt, which names the device and shows where the wheel is, and a touch of a knob names what its box is. Home puts the wheel on
+MACROS, so a track at home is played from its eight macros. Move's Device View shows a track's devices as a row of icons in
 signal order, and the wheel moves along it [7.1]. Feverdream keeps that view and opens the chain up: devices can be
 added, removed, swapped and put in a different order, and the track has macros over all of them.
 
-`RACK | MACROS | PADS · SEQ · MIDI effects · INSTRUMENT · audio effects · MIX`
+`RACK | MACROS | SEQ · MIDI effects · INSTRUMENT · audio effects · MIX`
+
+The pad layout, PADS, is not on the belt: it is a layer opened with Shift + Step 8 (section 6.3).
 
 | Zone | Devices | How many |
 |---|---|---|
 | Rack | the chain as a whole, under the name of its preset: the item at the front, for saving and loading it (section 6.8) | one |
 | Macros | the track's own eight knobs, in banks (section 6.6) | one bank to start; more are added |
-| Notes in | PADS, the pad layout, and SEQ, the sequencer | one of each, always there. They can be swapped for another kind, not removed or moved |
+| Notes in | SEQ, the sequencer | one, always there. It can be swapped for another kind, not removed or moved |
 | MIDI effects | arp, chord, scale, random, strum and the like | as many as are added, in any order; a new track has one place for them, empty |
 | Instrument | the sound; a sample-based one shows its sample as a second icon [M] | exactly one |
 | Audio effects | filter, delay, reverb and the like | as many as are added, in any order; a new track has one place for them, empty |
 | Mix | the track's strip | one, always last |
 
-**The rack is dynamic.** A new track is the shortest chain that plays: `MACROS · MIDI FX · SOUND · FX`, with PADS
-and SEQ in front of the MIDI effects and MIX at the end, as always. The MIDI FX and FX places are empty to begin
+**The rack is dynamic.** A new track is the shortest chain that plays: `MACROS · MIDI FX · SOUND · FX`, with SEQ
+in front of the MIDI effects and MIX at the end, as always. The MIDI FX and FX places are empty to begin
 with and show as a +. Filling one opens the next + beside it, so the chain grows as it is used and is never
 longer than what is in it. How many MIDI effects, audio effects and macro banks a track may hold is not fixed
 here: the limits are sized once it is measured what the processor carries with eight tracks playing
@@ -423,13 +492,14 @@ here: the limits are sized once it is measured what the processor carries with e
 A device moves only inside its zone: an audio effect cannot go in front of the instrument. A row longer than the
 screen scrolls, with a mark at the edge it continues past.
 
-**Two levels, as on Push.** At the chain, the wheel walks the devices and the encoders are the track's macros. A
-press enters the device under the wheel: the encoders become its parameters and the wheel turns its pages. Back
+**Two levels.** At the chain, the wheel walks the devices, and the encoders are always the main page of the one
+under the wheel: turn to SEQ and the knobs are SEQ's, turn to MIX and they are the strip's. The picture, the name
+and the knobs never disagree. A press enters the device under the wheel: the wheel then turns its pages. Back
 leaves it.
 
 | Device | Is | Encoders, first page |
 |---|---|---|
-| PADS | the pad layout (sections 6.3, 6.4): what the pads play, before anything is sequenced | the layout's own values; for Chords: voicing, perform, amount, roots, style, bank |
+| PADS, on Shift + Step 8, not on the belt | the pad layout (sections 6.3, 6.4): what the pads play, before anything is sequenced | the layout's own values; for Chords: voicing, perform, amount, roots, style, bank |
 | SEQ | the clip's sequencer (section 7) | TRIG: micro, ratchet, chance, condition, function, amount, length, slide |
 | A MIDI effect | arp, chord, scale, random, strum | the effect's values |
 | The instrument | a synth, a sampler, a kit | its main bank [M] |
@@ -441,7 +511,7 @@ leaves it.
 | Gesture | Does | |
 |---|---|---|
 | Wheel turn | move along the chain | [M] |
-| **Wheel press** | enter the device: its parameters on the encoders | [New; on Move this press opens the browser, which is now the next press] |
+| **Wheel press** | enter the device: the wheel now turns its pages. Its main page was on the encoders already | [New; on Move this press opens the browser, which is now the next press] |
 | Wheel press on a + | browse devices to add there. A + stands at the end of the MIDI effects and of the audio effects while there is room | [M+] |
 | Wheel turned fully left, onto the rack's name, then press | the rack's sheet: Load, Save, Save As, Init, Revert (section 6.8) | [M+: on Move this is where Track Presets are browsed, 7.2] |
 | **Shift + wheel turn** | move the device along its zone; the row redraws as it moves | [New] |
@@ -457,14 +527,14 @@ leaves it.
 |---|---|---|
 | Wheel turn | its pages, one after another with no wrap (below). Before the first page: the device's name, its front item | [New] |
 | Wheel press on the front item | the device's sheet: Load, Save, Save As, Init, Revert (section 6.8) | [M+] |
-| Wheel press on a page | the list of its pages by name; the wheel picks one and a press goes there | [New, as RemoteFM1's jog click] |
+| Wheel press on a page | nothing. The wheel's turn already walks the pages, so a list of them would be a second way to do the same thing | |
 | Back | out to the chain. Back held: home | [M] |
-| Encoder touch | that parameter takes the screen: its name and value, large | [M] |
+| Encoder touch | the card: the parameter's name, its icon large and moving, its value in the strip (section 3.1). Turning the wheel while touching shows the new page for 0.6 s, then the same knob's card on it | [M+] |
 | Encoder turn | change the value; Shift for fine steps | [M] |
 | **An encoder touched + wheel press** | that parameter's options: Map to Macro, Delete Automation, Reset | [New] |
 | Left / Right, Plus / Minus, the pads, the steps | as at the chain: entering a device changes only the wheel and the encoders | |
 
-The page marks say which level this is: small boxes at the chain, a square and thin segments inside a device. A touch of
+The page marks say which level this is: none at the chain, a square and thin segments inside a device. A touch of
 the wheel says it in words.
 Selecting a track returns to the chain, with the wheel on the device last entered.
 
@@ -473,16 +543,16 @@ Selecting a track returns to the chain, with the wheel on the device last entere
 of eight, grouped the way the device is thought about. A synth might have OSC A, OSC B, FILTER, ENV, LFO and MIX
 after its main page; a delay might need no more than its main page; the sequencer has TRIG, MORE and CLIP.
 
-- The wheel turns the pages. On arriving, the page's name shows large for a moment (`FILTER`), then its eight
-  parameters. With Speech on it is said: `Drift, Filter, page 3 of 6`.
-- At rest the page is its eight pictograms with its name large under them. The page marks along the top have a
-  segment for each page, the current one thick, so the length of the walk is always visible. A touch of the wheel gives the device, the page
-  and the count in words (`DRIFT`, `FILTER 3/6`).
+- The wheel turns the pages. The page arrives at once, with nothing over it, and its name is in the line. With
+  Speech on it is said: `Drift, Filter, page 3 of 6`.
+- At rest the page has the screen, with its name large at the bottom. Inside a device there is no steps row: the
+  steps light on the buttons as always, and the screen is the page's. The page marks along the top have a
+  segment for each page, the current one thick, so the length of the walk is always visible. A touch of the wheel says the device, the page
+  and the count (`DRIFT`, `FILTER 3/6`).
 - A device opens on its main page the first time, and after that on the page it was last left on.
 - A page may use fewer than eight encoders. The ones with no job are dark and dead (rules R3 and R4).
 - Related things share a column across pages where they can, so a hand finds them: level on encoder 8, for
   instance, on every oscillator page.
-- A press on any page lists the pages by name, for a device with many; the wheel picks one and a press goes there.
 - The first page mark is the device's front item, drawn as a square, not a segment, so it is never mistaken for
   a page of parameters.
 - A lock, an automation lane or a macro points at a parameter, not at a place on a page, so pages can be rearranged
@@ -510,8 +580,8 @@ time, and the one to play it from.
 - **Time passes in it.** The bar and the beat are in its motion.
 - **It moves like a thing.** Motion is on springs, not on a timer, so it settles and overshoots as weight does, and
   it is the same at any frame rate.
-- **Touch is unchanged.** A touched encoder takes the screen with the parameter's name and the value being set
-  (section 3.1), and the world comes back when it is let go. So the main page never has to carry a word.
+- **Touch is unchanged.** A touched encoder is told in the name line, its name and then the value being set
+  (section 3.1), with the world still moving above it. So the world never has to carry a word.
 - The key parameters are not extra parameters. Each is one of the device's own, which also has its place on a page
   further in. The main page is the short way to the eight that matter most.
 - A theme is line art on black, one dot wide, with dither for shade, to suit a one-bit screen. Its emblem is the
@@ -520,10 +590,21 @@ time, and the one to play it from.
 
 ![A device's main page](img/device-main.png)
 
-**The pages further in** are plain. A page of parameters at rest is eight **pictograms**, two rows of four, laid out
-as the encoders are, with no words: each draws its own value as the sound is using it now, moving when it is
-modulated (section 3.1). This is the Syntakt half: regular, always in the same place. The main page is the OP-1
-half. Touching an encoder turns either into words.
+**The pages further in** are plain. **A page that is one thing is drawn as that thing**, large, and moves as its
+knobs turn. A synth's FILTER page is one filter, drawn as spaced bars across ten octaves with the corner at the
+cutoff and the peak as tall as the resonance, a dot above the bars where the envelope takes the corner; beside it
+the filter's envelope, whose shape follows attack, decay, sustain and release. Its AMP page is one wide envelope
+and a level bar. Such a page is live as a pictogram is (section 3.1): the bars follow the cutoff as the sound is
+using it now, swept by the envelope, an LFO or a step lock, with a fixed tick above them where the knob has it; a
+small box rides each envelope where the newest note is in it; locked times reshape it. When a knob on such a page is touched, its card takes the screen as anywhere else (section 3.1). **Any page past
+the main one that holds an envelope is drawn this way**: one live envelope, large, with what it drives beside it.
+The main page keeps its eight icons.
+
+![FILTER](img/param-page.png) ![AMP](img/page-amp.png)
+ A page of values that are not one thing at rest is eight **pictograms**, two rows of four,
+laid out as the encoders are, with no words: each draws its own value as the sound is using it now, moving when
+it is modulated (section 3.1). This is the Syntakt half: regular, always in the same place. The main page is the
+OP-1 half. Touching an encoder turns either into words.
 
 The sequencer's main page is RemoteFM1's picture: a piano roll of the page shown, with the row of 16 steps always
 under it. MIX's is the strip itself. MACROS has no world of its own: its page is the instrument's.
@@ -539,10 +620,11 @@ pulse for a Track Preset, encoder LEDs pulse for an effect, the pad pulses for a
 
 ### 6.3 Pad layouts
 
-The pad layout is the first device in the row, PADS. Like any device it has presets (its front item), a main page, and a
-page of values on the encoders. Shift + Step 8 (Layout) is the shortcut: each quick click steps to the next layout
-the track's type allows. On a kit that is Move's own 16 Pitches switch [M, 9.2]. The layout's name shows as a toast,
-and the pads redraw at once.
+The pad layout, PADS, is not a box on the chain's belt. **Shift + Step 8 (Layout)** opens it as a layer over the
+chain, as the TRIG page is: its page has the screen, the layout's name large at the bottom, and the encoders are
+the layout's values. Shift + Step 8 again, or Back, closes it, and the chain is as it was. The wheel turns the belt
+of layouts (section 3.5): each the track's type allows, the pads redrawing as one reaches the middle. On a kit that
+is Move's own 16 Pitches switch [M, 9.2]. Like a device, PADS has presets (its front item).
 
 What the pads play is decided here, before the sequencer. A step always holds the notes that sounded, whatever
 layout made them.
@@ -723,7 +805,8 @@ A macro is a knob of the track's own that turns one or more parameters anywhere 
 of its own, as a macro on a Live rack does. Macros come in banks of eight. A track starts with one bank and more
 are added; the limit is sized with the chain's (section 6).
 
-- **At the chain the encoders are the macros.** A track is played from here: its eight most useful controls are
+- **At home the encoders are the macros.** Home puts the wheel on MACROS in the chain, and the encoders are
+  whatever the wheel is on (section 6). A track is played from here: its eight most useful controls are
   under the hands without entering anything. Factory presets arrive with the first bank mapped, so a Move player
   who touches an encoder hears the sound change, as on Move.
 - **Mapping**, the quick way: the map row (section 6.7). Hold a macro's key on the top row of pads and turn the
@@ -734,7 +817,7 @@ are added; the limit is sized with the chain's (section 6).
   press gives its options: Rename, Range of each parameter it turns, Clear. The web interface shows all of this at
   once.
 - **A macro is a parameter.** It can be locked on a step, recorded as automation, and mapped from MIDI, as any
-  other. Holding a step at the chain and turning an encoder locks that macro on the step, which is Move's per-step
+  other. Holding a step at home and turning an encoder locks that macro on the step, which is Move's per-step
   automation gesture at the level a player lives on.
 - A rack preset saves the chain and its macros together (section 6.8).
 
@@ -841,7 +924,7 @@ is left as it is on Move.
 
 The rest picture of a track is not fixed. It is one of five **views**, and the chain of icons is only the first.
 A view fills the screen and has no words. Touch brings the words as ever (section 3.1), and the chain shows
-itself whenever the wheel is touched or turned, then gives the screen back.
+itself whenever the wheel is turned, then gives the screen back.
 
 | View | Shows |
 |---|---|
@@ -859,7 +942,7 @@ for a moment. Each track remembers its view.
 ![Scope 8](img/view-scope8.png) ![Tracks](img/view-tracks.png)
 
 **Scene.** The Scene view is the instrument's theme (section 6.1): the same world as its main page, shown as the
-track's rest picture at the chain. Here the encoders are the macros, and what the macros do to the instrument's
+track's rest picture at home. Here the encoders are the macros, and what the macros do to the instrument's
 key parameters is seen in the world. An effect's theme is seen on that effect's own main page, inside it; at the
 chain the scene is always the instrument's. With Speech on, the scene is named once, when the view is chosen.
 
@@ -899,7 +982,9 @@ triplet page. Left and Right move between pages, without wrapping. On kits the s
 
 ### 7.2 Holding a step
 
-Everything Move does with a held step still happens [11]. The screen shows a **step card** so the result is visible.
+Everything Move does with a held step still happens [11]. The screen keeps the page it was on, which now shows the
+held step's values, and the name line becomes the **step card**: the box says S and the step's number in place
+of the track's, at the same width, and the line names the step's notes, or the value a control is setting.
 
 ![Step held](img/step-held.png)
 
@@ -911,7 +996,7 @@ Everything Move does with a held step still happens [11]. The screen shows a **s
 | Plus / Minus | transpose a semitone; held, or with Shift: an octave | [M+] |
 | Left / Right | nudge by 1/384 of a whole note, the TRIG page's MICRO, from -23/384 to +23/384; Shift: six at a time, a quarter of a 16th; held: a whole step | [M+] |
 | A pad | add or remove that note, up to eight on a step | [M] |
-| An encoder | lock what that encoder shows on this step: a macro at the chain, a parameter inside a device | [M, 14.2.4] |
+| An encoder | lock what that encoder shows on this step: a macro at home, a parameter of the device under the wheel or inside it | [M, 14.2.4] |
 | **Wheel press** | the encoders go to the TRIG page, and stay there when the step is let go. A step held and the wheel pressed again: back to the page it came from | [New] |
 | **Mute** | mute the step, keeping what is on it | [New] |
 | Delete + an encoder | remove that lock from the step | [M+] |
@@ -1187,38 +1272,38 @@ or 8 bars, clip end.
 
 ### 8.2 Mixing
 
-In Session Mode the eight encoders are the eight tracks, each above its column of clips.
+Session Mode's wheel walks seven pages:
 
-| Wheel position | Encoders 1-8 |
-|---|---|
-| SCOPES | track volumes; the screen is Scope 8 (section 6.9): the eight tracks' waveforms |
-| LEVEL (home) | track volumes; the screen is the meters |
-| PAN | track pans |
-| SEND A | each track's send to A |
-| SEND B | each track's send to B |
+| Wheel position | The screen | Encoders |
+|---|---|---|
+| CLIP (home) | RemoteFM4Move's session view, the pads' grid drawn: the eight tracks across and the four scenes on the pads down; a bar over the selected track (dashed over a muted one); a playing clip filled with a black play mark; a queued one doubled, blinking; a stopping one blinking; a clip outlined; an empty slot a dot | none: the pads launch. A knob touched selects its track (the owner's, 24 November 2026) |
+| TRACK | the eight meters, as on LEVEL; their marks show the value of the knob last touched (level, pan or a send), so the selected track is seen against the others. This is why a track is selected in Session Mode: Left / Right and the odd steps choose whose strip this is | 1 level, 2 pan, 3-5 sends 1-3 of the selected track. The same page as MIX in the track's chain |
+| LEVEL | the eight meters with the value marks on them | the eight tracks' levels, a knob a column |
+| PAN | the same, the marks the pans | the eight tracks' pans |
+| SEND 1, SEND 2, SEND 3 | the same, the marks the sends | each track's send to that bus |
 
-**The wheel is a belt** (section 3.5). Turning it shows Session Mode's belt: these five pages as
-boxes, then the buses' effects (section 8.3), riding into OUT at the right. The box in the middle is large, with
+**The wheel is a belt** (section 3.5). Turning it shows Session Mode's belt: these seven pages as
+boxes. The box in the middle is large, with
 its name under the belt. A page is live as it reaches the middle, with no press, as a page inside a device is: the
 encoders are its eight values at once. A second after the last click the belt goes and the screen is that page's picture again, with the page marks
 along the top showing which of the belt's boxes it is.
 
-![Session Mode's belt](img/belt-session.png)
+![Session Mode's belt](img/belt-session.png) ![CLIP](img/session-clip.png)
 
-At rest the screen shows eight meters with the value marks on them and, under each, the playing clip's progress as a small
-ring. Its bottom row is the sixteen scenes, with the four on the pads underlined. Touching an encoder names its track. Volume on its own is the master level [M]; a track button held with Volume
+On LEVEL, PAN and the sends the screen at rest shows eight meters with the value marks on them and, under each, the playing clip's progress as a small
+ring. Its bottom row is the sixteen scenes, with the four on the pads underlined. Touching an encoder shows its card, whose icon for a level is the track's live meter with the level a mark across it, as does a track button held with Volume. Volume on its own is the master level [M]; a track button held with Volume
 is still that track's level [M].
 
 ### 8.3 Sends and Master
 
-Turning the wheel further along the same belt reaches the buses, where Move has its two main effects [17.2].
-
-`SCOPES · LEVEL · PAN · SEND A · SEND B | A: effects | B: effects | MASTER: effects · OUT`
+There are three return buses, 1 to 3, where Move has its two main effects [17.2]. The belt now ends at SEND 3;
+where the buses' effects, the master's and OUT are reached is open (it was further along this belt).
+In the Phase 1 build the sends are kept with the track but go nowhere yet: the buses have no effects.
 
 Each bus is a chain of audio effects, none to four, with the same gestures as a track's chain (section 6): a press
 enters a device, Back leaves it, Shift + wheel moves it, a + adds one. While the wheel is on an effect's box the
-encoders keep the mix page last shown, until a press enters the effect. OUT is the machine the belt runs into, as
-MIX is for a track. It holds the limiter that Move hides
+encoders are that effect's main page; a press enters it for the rest. OUT is the last box of the belt, as
+MIX is of a track's. It holds the limiter that Move hides
 [16.8], the master level and the metering. Clips can lock and automate bus parameters as they can any other.
 
 ## 9. Recording, capture and automation
@@ -1277,7 +1362,7 @@ screen's Shift card names all sixteen.
 | 9 | Keys & Scales | [M] |
 | 10 | Full Velocity | [M] |
 | 11 | Repeat / Arp: the track's first MIDI FX | [M] |
-| **12** (layers merging) | **Mixer**: Session Mode's mix pages over Note Mode. The encoders are the eight tracks' levels, and the wheel turns to PAN, SEND A and SEND B (section 8.2); the pads and steps still play the track. Step 12 again, or Back, leaves. The layers merging read as tracks mixed into one | [New] |
+| **12** (layers merging) | **Mixer**: Session Mode's mix pages over Note Mode. The encoders are the eight tracks' levels, and the wheel turns along Session Mode's belt, LEVEL first (section 8.2); the pads and steps still play the track. Step 12 again, or Back, leaves. The layers merging read as tracks mixed into one | [New] |
 | **13** (star) | **Tools**: transpose, shift, reverse, randomize, humanize, regrid, locks to automation, **Bounce** (section 10). The same step as Schwung's Tools and EvilGenius's | [New] |
 | 14 | New Clip: select the track's next empty slot | [M, from 18.1] |
 | 15 | Double Loop | [M] |
@@ -1430,8 +1515,90 @@ Decided:
   screen reader is the voice; the Speech setting has RemoteFM1's Off, On and Jog modes. "Text to speech" in the
   feature list meant this. Typed words made into a sample, which an earlier draft had, is not in the design.
 - **The belt** (24 November 2026), after EvilGenius's page belt: kinds of thing are chosen as boxes of pixel art
-  on a conveyor, the chosen one large in the middle. The chain of devices is a belt running into MIX, and
-  Session Mode's wheel is a belt running into OUT (sections 3.5, 8.2).
+  on a conveyor, the chosen one large in the middle. The chain of devices is a belt ending in MIX, and
+  Session Mode's wheel is a belt ending in OUT (sections 3.5, 8.2).
+- **MIX and OUT ride the belt** (24 November 2026, the owner's, from the first run on the unit): they are the
+  last boxes and come to the middle like any other. Earlier drafts fixed them at the right as a machine the belt
+  ran into, which made one box behave unlike the rest (section 3.5).
+- **A touched encoder is told in the name line, not over the screen** (24 November 2026, the owner's, from the
+  first run on the unit): in a rest view the pictograms stay and the line gives the name, then the value, so
+  the small pictures are seen to change. A held step puts S and its number in the track's box, which never
+  changes width. That the value takes the name's place only while turning, the inverted pictogram, and the
+  full-screen view kept for Session Mode and the mixer are the designer's readings (sections 3.1, 7.2).
+- **What the belt shows chosen is what the knobs turn** (24 November 2026, the owner's, from the first run on the
+  unit): at the chain the encoders, the pictograms and the name all belong to the device under the wheel, with
+  no press. Earlier drafts kept the macros on the encoders all along the chain, so the name could say SEQ while
+  the knobs turned a filter. That home rests on MACROS, and that the chain shows a device's first page whatever
+  page was last open inside it, are the designer's readings (sections 3.5, 6).
+- **Inside a device the page has the screen** (24 November 2026, the owner's, from the first run on the unit):
+  no steps row inside a device, and the name line sits at the bottom. A page that is one thing is drawn as that
+  thing, large, and moves as its knobs turn: the synth's FILTER page is one filter of spaced bars beside a live
+  envelope. The page's name no longer flashes on arrival. The AMP page as one envelope and a level bar, the dot
+  above the bars for the envelope amount, and the line under the half a touched knob belongs to are the
+  designer's readings (sections 3.1, 6).
+- **A touched knob shows its value without a turn** (24 November 2026, the owner's, from the unit): the name
+  alone left the value unknown until a turn, and a turn changes it. The line gives the name, then the value 0.6 s
+  into the touch; a turn shows the value at once. The timing, and name first rather than both at once, are the
+  designer's readings (section 3.1).
+- **No marks at the chain** (24 November 2026, the owner's, from the unit): the small boxes along the top of the
+  chain's rest view read as pages of the device under them, as if entering it would land on that page. The belt
+  already shows where the wheel is, so at rest the chain has no marks. Session Mode keeps its marks (the
+  designer's reading: the owner spoke of the chain) (sections 3.1, 3.5, 6).
+- **The owner's screen rules** (24 November 2026, the owner's, after the first day on the unit): text never
+  overlaps anything and always fits a slot defined in advance; one font and one size per role, never changed to fit
+  a name; a touched knob always shows its name, its value and its icon, animated; icons say what they mean and move
+  while modulated; no track number always on, a track change is a popup (number, type, preset); a page turned while
+  a knob is touched shows the page briefly, then the knob again; a knob's LED is as bright as its value.
+- **Screen system 2** (25 November 2026, the owner's, after review on the design canvas, with the owner's notes):
+  the screens of section 3.1, drawn by `design/tools/redesign.py`, which refuses text that does not fit its slot.
+  The owner's notes on the canvas: CHANCE a rolling die and its percentage, no bar; CONDITION a:b as two groups of
+  boxes and a colon; FILTER kept as the unit draws it, and any later page with an envelope drawn the same way (AMP);
+  ENV AMT's arrow just above the filter's bottom line, solid head, no mark at its base; all arrowheads solid; the
+  FUNCTION and DIRECTION signs in their own band, the playhead moving; RATCHET always one dot between strikes; SEND
+  redrawn; KEY and SCALE fill a scale's black keys. The designer's readings: the value at 2x in a white strip
+  rather than larger, so a word such as PENDULUM fits; the card's icon the page's icon with each dot doubled; the
+  slot sizes in the type table; the LED steps. Not yet built: the Phase 1 code still draws the earlier screens.
+- **CLIP is RemoteFM4Move's session view; TRACK keeps the bars; every mix value shows its bar; no row of eight
+  marks** (24 November 2026, the owner's, from the unit): the four-by-four grid of one track's clips did not match
+  RemoteFM4Move and is replaced by its grid of eight tracks by the four scenes on the pads. TRACK shows the meters
+  with their marks following the knob touched. Pan and the sends show an upright bar beside the value while set,
+  as a level shows its meter. The row of eight marks under a touched value, saying which knob it is, is dropped.
+  The designer's readings: the bar for a pan fills from the middle; the bar along the bottom moves down into the
+  freed row (sections 3.1, 8.2).
+- **The chain at rest is eight big boxes; a touch is full screen again** (24 November 2026, the owner's, from the
+  unit): the track number and device name are dropped from the chain's rest view, and its eight pictograms are
+  big pictograms filling the space above the steps row, with no outlines around them (the owner's, the same evening). Touching or turning a knob takes the whole screen with the
+  parameter's name, its value and its pictogram made large. This takes back, for pictogram pages, the earlier
+  decision to tell a touch in the name line. The designer's readings: the pictogram is drawn at the large size
+  with lines two dots thick rather than its small picture scaled up; the unit sits under it so the value stays
+  at the largest size; pages drawn as one thing (FILTER, AMP) and a held step keep the line; inside a device a
+  pictogram page keeps its name at the bottom (sections 3.1, 6).
+- **Shift held draws no step icons** (24 November 2026, the owner's, from the unit): the icons are printed on
+  the steps and light there, so the screen showing them again was a second way to see the same thing. The view
+  stays; S in the corner is the designer's reading (section 3.3).
+- **A level being set shows its meter** (24 November 2026, the owner's, from the unit): in Session Mode, and
+  for a track button held with Volume, the value has the track's live meter beside it. The meter at the right
+  with the level's mark across it is the designer's reading (sections 3.1, 8.2).
+- **Session Mode's belt is CLIP, TRACK, LEVEL, PAN, SEND 1, SEND 2, SEND 3** (24 November 2026, the owner's,
+  from the unit): CLIP launches clips and looks like RemoteFM1's loops; TRACK is the selected track's level, pan
+  and sends, which gives selecting a track in Session Mode its point. Three sends, not two. SCOPES, the buses'
+  effects and OUT leave the belt; where they go is open. The designer's readings: CLIP is home and its knobs are
+  dark (the pads launch); TRACK is the same page as MIX in the chain; the queued clip blinks and the selected
+  one is underlined; the mixer on Step 12 opens on LEVEL (section 8.2).
+- **The pad layout is off the belt, on Shift + Step 8** (24 November 2026, the owner's, from the unit): PADS as
+  a box on the chain read as one more device to walk past, and its marks suggested pages it did not have. Shift +
+  Step 8 opens it as a layer; again, or Back, closes it. The chain's belt is SEQ, the instrument, the effects and
+  MIX. That it is a layer like TRIG rather than a toast that steps the layout, and that Back closes it, are the
+  designer's readings. In the Phase 1 build the layout is still encoder 1 of its page and the wheel does
+  nothing there; the belt of layouts is to come (sections 6, 6.3).
+- **Everything that moves is seen moving** (24 November 2026, the owner's, from the unit): the pictograms and
+  the pages drawn as one thing show modulation, envelopes and step locks as they happen, and the value under a
+  touched knob holds still while it is touched or turned. The tick for the cutoff the knob sets and the box that
+  rides each envelope with the newest note are the designer's readings (sections 3.1, 6.1).
+- **No list of pages** (24 November 2026, the owner's, from the first run on the unit): a wheel press on a
+  device's page does nothing. Turning the wheel already chooses the page (section 6.3).
+- **A touch of the wheel draws nothing** (24 November 2026, the owner's, from the first run on the unit): the
+  view of the place in words stood in the way of the belt. The place is still said (sections 3.1, 3.4).
 - **Left-hand Shift: holding Note/Session** (23 November 2026), for playing in the lap. Move's hold-to-preview on
   that button is given up (section 11.1).
 

@@ -515,7 +515,7 @@ def board(shots):
     items.append({"type": "group", "id": uid(), "x": -60, "y": y - 80, "w": 3 * (LW + GAP) + 8, "h": 1000,
                   "title": "5 · Screen rules: pictures at rest, one thing full screen, big type, told on touch",
                   "color": "#d36cff"})
-    extra = ["chain-belt", "belt-pick", "belt-session","param-page", "param-touch", "wheel-touch", "hint-copy", "toast", "browser", "preset-sheet",
+    extra = ["chain-belt", "chain-card", "belt-pick", "belt-session", "session-clip","param-page", "param-touch", "hint-copy", "toast", "browser", "preset-sheet",
              "projects", "device-main", "view-scene", "view-scope", "view-scope8", "view-tracks"]
     names = {k: (n, d) for k, n, _, d in SCREENS}
     for i, k in enumerate(extra):
