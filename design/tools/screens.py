@@ -211,25 +211,38 @@ def belt(s, y, x1, phase):
     s.disc(x1 - 3, y + 2, 1)
 
 
+def big(s, fn, x, y):
+    """An icon at twice its size: the chosen box of a belt."""
+    tmp = Scr()
+    fn(tmp, 0, 0)
+    for j in range(18):
+        for i in range(18):
+            if tmp.get(i, j):
+                s.fill(x + 2 * i, y + 2 * j, 2, 2)
+
+
 def scr_chain(sel=4, off=0):
-    """The chain as a belt: the device under the wheel stays in the middle and the belt moves under it, in signal
-    order, into the machine at the right, which is MIX. off: dots still to slide, on the way to sel."""
+    """The chain's belt, which shows only while the wheel turns and takes the whole screen: the device under the
+    wheel at twice the size in the middle, its neighbours small beside it, all riding into the machine at the
+    right, which is MIX; the name large under the belt. off: dots still to slide, on the way to sel."""
     s = Scr()
     for i, fn in enumerate(CHAIN):
-        x = 55 + (i - sel) * 18 + off
+        d = i - sel
+        if off == 0 and d == 0:
+            big(s, fn, 46, 1)
+            s.inv(45, 0, 38, 38)
+            continue
+        x = 55 + d * 22 + off if off else 55 + d * 22 + (10 if d > 0 else -10)
         if 0 <= x and x + 17 <= 104:
-            fn(s, x, 0)
-    if off == 0 and sel < 7:
-        s.inv(54, 0, 20, 18)
-    belt(s, 18, 106, -(sel * 18) + off)
+            fn(s, x, 20)
+    belt(s, 38, 106, -(sel * 22) + off)
     # the machine the belt runs into: the mix strip
-    s.rect(106, 0, 22, 22)
-    s.vl(106, 3, 14, 0)
-    ic_mix(s, 109, 2)
-    if sel == 7:
-        s.inv(107, 1, 20, 20)
-    name_line(s, 3, CHAIN_NAMES[sel if off < 9 else sel - 1], 25)
-    steps_row(s)
+    s.rect(106, 12, 22, 30)
+    s.vl(106, 21, 16, 0)
+    ic_mix(s, 109, 18)
+    if sel == 7 and off == 0:
+        s.inv(107, 13, 20, 28)
+    Lc(s, 64, 47, CHAIN_NAMES[sel if abs(off) < 11 else sel - (1 if off > 0 else -1)])
     return s
 
 
@@ -903,12 +916,12 @@ ANIM = {
     # a turn of the wheel: the belt slides a box, then rests
     # at rest: the marks and the macros. A turn: the belt comes up, slides a box, stays a second, and goes
     "note-device-view": ([(scr_chain_rest(4, i * 0.8), 180) for i in range(8)]
-                         + [(scr_chain(5, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(5, 0), 900)]
+                         + [(scr_chain(5, o), 45) for o in (22, 15, 9, 4, 1)] + [(scr_chain(5, 0), 900)]
                          + [(scr_chain_rest(5, i * 0.8), 180) for i in range(8)]
-                         + [(scr_chain(4, o), 45) for o in (-18, -13, -8, -4, -1)] + [(scr_chain(4, 0), 900)]),
-    "chain-belt": ([(scr_chain(4, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(4, 0), 1400)]
-                   + [(scr_chain(5, o), 45) for o in (18, 13, 8, 4, 1)] + [(scr_chain(5, 0), 1400)]
-                   + [(scr_chain(4, o), 45) for o in (-18, -13, -8, -4, -1)]),
+                         + [(scr_chain(4, o), 45) for o in (-22, -15, -9, -4, -1)] + [(scr_chain(4, 0), 900)]),
+    "chain-belt": ([(scr_chain(4, o), 45) for o in (22, 15, 9, 4, 1)] + [(scr_chain(4, 0), 1400)]
+                   + [(scr_chain(5, o), 45) for o in (22, 15, 9, 4, 1)] + [(scr_chain(5, 0), 1400)]
+                   + [(scr_chain(4, o), 45) for o in (-22, -15, -9, -4, -1)]),
     "belt-session": ([(scr_sbelt(3, 0), 1200)] + [(scr_sbelt(4, o), 45) for o in (22, 15, 9, 4, 1)]
                      + [(scr_sbelt(4, 0), 1200)] + [(scr_sbelt(3, o), 45) for o in (-22, -15, -9, -4, -1)]),
     "belt-pick": ([(scr_belt(2, 0), 1200)] + [(scr_belt(3, o), 45) for o in (22, 15, 9, 4, 1)]

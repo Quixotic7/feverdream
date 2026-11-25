@@ -1,6 +1,6 @@
 # Feverdream: UI/UX design
 
-Draft 33, 24 November 2026. Status: proposal for review. Nothing here is built yet.
+Draft 34, 24 November 2026. Status: proposal for review. Nothing here is built yet.
 
 Feverdream is a standalone groovebox for Ableton Move. It runs in place of Move's own software, as EvilGenius and
 RemoteFM1 do. This document describes how it is played: what every control does, what the screen and LEDs say, and how
@@ -302,6 +302,9 @@ belt as its one picture for choosing among kinds of thing.
 - **The belt shows only while the wheel turns.** It comes up at the first click of a turn and goes a second after
   the last. At rest there is no belt on the screen: the mode's own picture is there, and the **page marks** along
   the top edge say where the wheel is. A touch of the wheel with no turn gives the place in words, as before.
+- **While it shows, the belt has the whole screen** (rule 8: one thing, full screen). The chosen box is drawn at
+  twice the size of its neighbours, more than half the screen's height, and the name fills the rest. Nothing else
+  is drawn with it: no steps row, no marks.
 - **The belt moves; the choice stays in the middle.** A turn of the wheel slides the belt one box, on a spring, in
   under a fifth of a second. The eye never has to follow a cursor across the screen.
 - **A box is pixel art, not a word.** Each kind has its own small picture; the chosen box is large enough to read

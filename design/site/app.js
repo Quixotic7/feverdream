@@ -332,8 +332,8 @@
       const j = S.i + d;
       if (S.shift) {
         const a = dev(), b = chain[j];
-        if (a.move && b && b.move && b.zone === a.zone) { chain[S.i] = b; chain[j] = a; S.i = j; S.off = 18 * d; S.note = `${a.full} moved inside ${title(a.zone)}.`; } else S.note = a.move ? `${a.full} stays inside ${title(a.zone)}: a device moves only in its zone.` : `${a.full} cannot be moved.`;
-      } else if (j >= 0 && j < chain.length) { S.i = j; S.off = 18 * d; }
+        if (a.move && b && b.move && b.zone === a.zone) { chain[S.i] = b; chain[j] = a; S.i = j; S.off = 22 * d; S.note = `${a.full} moved inside ${title(a.zone)}.`; } else S.note = a.move ? `${a.full} stays inside ${title(a.zone)}: a device moves only in its zone.` : `${a.full} cannot be moved.`;
+      } else if (j >= 0 && j < chain.length) { S.i = j; S.off = 22 * d; }
       S.beltUntil = performance.now() + 1100;                  // the belt shows only while the wheel turns, and a second after
     } else if (S.lvl === 'dev') {
       const pg = clamp(S.pg + d, dev().nofront ? 0 : -1, dev().pages.length - 1);
@@ -430,16 +430,25 @@
       return s.p;
     }
     if (S.lvl === 'chain') {
+      // the belt, only while the wheel turns, on the whole screen: the chosen device at twice the size
       const off = Math.round(S.off), last = chain.length - 1;
-      chain.forEach((c, j) => { if (j === last) return; const x = 55 + (j - S.i) * 18 + off; if (x >= 0 && x + 17 <= 104) ICON[c.ic](s, x, 0); });
-      if (off === 0 && S.i < last) s.inv(54, 0, 20, 18);
-      s.hl(0, 18, 106);
-      const ph = (((-S.i * 18 + off) % 6) + 6) % 6;
-      for (let x = -6 + ph; x < 104; x += 6) if (x >= 0) s.hl(x, 20, 2);
-      s.rect(106, 0, 22, 22); s.vl(106, 3, 14, 0); ICON.mix(s, 109, 2);
-      if (S.i === last) s.inv(107, 1, 20, 20);
-      s.fill(0, 24, 14, 17); s.t(2, 25, '3', 2, 0); s.t(18, 25, d.name, 2);
-      stepsRow();
+      chain.forEach((c, j) => {
+        if (j === last) return;
+        const k = j - S.i;
+        if (off === 0 && k === 0) {
+          const tmp = new Scr(); ICON[c.ic](tmp, 0, 0);
+          for (let y = 0; y < 18; y++) for (let x = 0; x < 18; x++) if (tmp.p[y * 128 + x]) s.fill(46 + 2 * x, 1 + 2 * y, 2, 2);
+          s.inv(45, 0, 38, 38); return;
+        }
+        const x = off ? 55 + k * 22 + off : 55 + k * 22 + (k > 0 ? 10 : -10);
+        if (x >= 0 && x + 17 <= 104) ICON[c.ic](s, x, 20);
+      });
+      s.hl(0, 38, 106);
+      const ph = (((-S.i * 22 + off) % 6) + 6) % 6;
+      for (let x = -6 + ph; x < 104; x += 6) if (x >= 0) s.hl(x, 40, 2);
+      s.rect(106, 12, 22, 30); s.vl(106, 21, 16, 0); ICON.mix(s, 109, 18);
+      if (S.i === last && off === 0) s.inv(107, 13, 20, 28);
+      s.tc(64, 47, d.name, 2);
       return s.p;
     }
     if (S.lvl === 'sheet') { listScreen(s, SHEET, S.sheet); return s.p; }
