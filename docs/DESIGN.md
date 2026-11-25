@@ -1,6 +1,6 @@
 # Feverdream: UI/UX design
 
-Draft 17, 24 November 2026. Status: proposal for review. Nothing here is built yet.
+Draft 18, 24 November 2026. Status: proposal for review. Nothing here is built yet.
 
 Feverdream is a standalone groovebox for Ableton Move. It runs in place of Move's own software, as EvilGenius and
 RemoteFM1 do. This document describes how it is played: what every control does, what the screen and LEDs say, and how
@@ -316,11 +316,11 @@ Where the belt is used:
 |---|---|---|
 | **The chain** (section 6) | the track's devices, in signal order, each box its theme's emblem | the machine at the right: MIX, the last device, where the sound leaves |
 | **Session Mode's wheel** (sections 8.2, 8.3) | the mixer's pages SCOPES, LEVEL, PAN, SEND A, SEND B, then each bus's effects | the machine at the right: OUT, the limiter and the way out |
-| Pad layouts (Shift + Step 8) | In Key, Chromatic, Keyboard, Chords, Progression, Perform | |
-| Track types (Track Setup) | Synth, Sampler, Sample Kit, Synth Kit, MIDI, FX Bus, Audio Loops | |
-| Adding a device (a press on a +) | the kinds of device that fit that place; a press opens that kind's list | |
-| Tools (Shift + Step 13) | transpose, shift, reverse, randomize and the rest | |
-| Views | Chain, Scene, Scope, Scope 8, Tracks, shown for a moment as the track button steps through them | |
+| **Pad layouts** (Shift + Step 8) | In Key, Chromatic, Keyboard, Chords, Progression, Perform | |
+| **Track types** (Track Setup) | Synth, Sampler, Sample Kit, Synth Kit, MIDI, FX Bus, Audio Loops | |
+| **Adding a device** (a press on a +) | the kinds of device that fit that place; a press opens that kind's list | |
+| **Tools** (Shift + Step 13) | transpose, shift, reverse, randomize and the rest | |
+| **Views** | Chain, Scene, Scope, Scope 8, Tracks, shown for a moment as the track button steps through them | |
 
 A belt is for a handful of kinds that each deserve a picture. Things with names and no pictures, such as presets,
 samples and projects' options, stay lists (section 6.2).
@@ -903,14 +903,20 @@ Everything Move does with a held step still happens [11]. The screen shows a **s
 | Left / Right | nudge a tenth of a step; Shift: a hundredth; held: a whole step | [M] |
 | A pad | add or remove that note, up to eight on a step | [M] |
 | An encoder | lock what that encoder shows on this step: a macro at the chain, a parameter inside a device | [M, 14.2.4] |
-| **Wheel press** | flip the encoders to the TRIG page for this step until it is let go | [New] |
+| **Wheel press** | the encoders go to the TRIG page, and stay there when the step is let go. A step held and the wheel pressed again: back to the page it came from | [New] |
 | **Mute** | mute the step, keeping what is on it | [New] |
 | Delete + an encoder | remove that lock from the step | [M+] |
 | Several steps held | all of the above on all of them; ranges shown where values differ | [M] |
 
 **A held step locks the page that is showing.** Holding a step never changes what the encoders are: they stay on
-the page the player is on, and turning one locks that parameter on the step. The TRIG page is one wheel press
-away while the step is held, and goes back when the step is let go. It does not take the encoders by itself.
+the page the player is on, and turning one locks that parameter on the step. It does not take the encoders by
+itself.
+
+**Step + wheel press goes to TRIG and back.** With a step held, a press of the wheel puts the TRIG page on the
+encoders, from any device and any page. It stays when the step is let go, so one step after another can be
+given its chance, condition or ratchet. A step held and the wheel pressed again goes back to the page it came
+from. While TRIG is shown this way the screen's corner carries the TRIG symbol (rule 5), and Back also goes
+back. Proposed after the owner's note; open item 1.
 
 **Parameter locks are Move's per-step automation**, with two additions. A lock can be placed on a step with no note:
 the step lights in bright track colour. And any device in the row can be locked, including MIX, MIDI FX and the
@@ -1026,7 +1032,7 @@ or off, and the step's icon stays lit while it is on. An arp that is on but can 
 RemoteFM1's now does.
 
 **The arp's main page, laid out anew.** RemoteFM1's order was PATTERN, RATE, RANGE, an empty knob, MODE, GATE,
-OCT DIST, QUANT: pitch and time mixed, and a hole at knob 4. Proposed: the left hand has which notes, the right
+OCT DIST, QUANT: pitch and time mixed, and a hole at knob 4. Now the left hand has which notes and the right
 hand has when.
 
 | Encoder | Value | Was |
@@ -1042,8 +1048,7 @@ hand has when.
 
 RANGE and OCT DIST sit together because one says how many octaves and the other how far apart. MODE is the
 left hand's last knob, next to the wheel whose click turns the arp off and on. RATE opens the right hand, GATE
-keeps its place, and QUANT stays last. SWING is the one new value; if it is not wanted, knob 7 is dark and dead
-and nothing else moves.
+keeps its place, and QUANT stays last. SWING is the one new value.
 
 **The sequencer is a device too.** The default is Step, described above. Pressing the wheel on SEQ opens the browser
 on other sequencers: Euclid, Lanes (a length and rate per kit pad), Turing, Chords, Random Walk. These are the
@@ -1123,7 +1128,7 @@ below, its meter on the screen.
 | Shift + pad | select the clip without launching it | [M, from 18.8] |
 | Copy + pad, then pad | copy a clip (section 7.7) | [M] |
 | Delete + pad | delete a clip; one Undo brings it back | [M] |
-| **Shift + Play** | stop every clip, at the launch quantize. In Note Mode it is still Move's retrigger | [New; on Move it retriggers here too] |
+| Shift + Play | retrigger every playing clip | [M] |
 | **Track button** | launch the scene beside it on all 8 tracks; a scene with no clips stops every clip | [New] |
 | Slide along a row | the same: launch the scene | [M+, Move's slide, turned] |
 | Copy + track button, then a track button | copy a scene | [M, from 18.8] |
@@ -1132,6 +1137,7 @@ below, its meter on the screen.
 | Left / Right | select the previous or next track | [M+] |
 | **Odd step under a column** (1, 3 ... 15) | quick click: select that track; double click: open it in Note Mode | [M, from 18.7] |
 | **Even step under a column** (2, 4 ... 16) | stop that track's clip at the launch quantize | [M, from 18.7] |
+| **Any even step, double click** | stop every clip at the launch quantize. The first click has already stopped that track, so nothing waits for the second | [New; proposed, open item 2] |
 | Odd step held + Volume | that track's level | [M, from 18.1] |
 | Mute + odd step | mute the track; Shift + Mute: solo | [M+] |
 | Note/Session | Note Mode on the selected track | [M] |
@@ -1249,7 +1255,7 @@ Other Shift combinations:
 | Gesture | Does | |
 |---|---|---|
 | Shift + Undo | redo | [M] |
-| Shift + Play | Note Mode: retrigger [M]. Session Mode: stop every clip (section 8.1) | [M+] |
+| Shift + Play | retrigger | [M] |
 | Shift + Capture | clear what Capture is holding | [M] |
 | Shift + encoder | fine steps; on some parameters, the second value | [M] |
 | Shift + Plus / Minus | shift the pads by a scale degree; in Session Mode, four scenes | [M, from 18.4, 18.7] |
@@ -1406,8 +1412,8 @@ Decided:
 - **Sixteen clips a track** (24 November 2026), to begin with; more can be added later.
 - **Each world is chosen with its device** (24 November 2026), as each synth and effect is designed. The pond and
   the canyon in the pictures are sketches (section 6.1).
-- **Stop all clips: Shift + Play in Session Mode** (24 November 2026). An empty scene still does it too
-  (section 8.1).
+- **Shift + Play is Move's retrigger everywhere** (24 November 2026). It was tried as stop all clips in Session
+  Mode and taken back, so it has one meaning. An empty scene stops every clip, as on Move (section 8.1).
 - **The three unlabelled step icons** (24 November 2026): step 4 Track Setup, step 12 Mixer, step 13 Tools.
   Bounce, which was on step 12, is an entry in Tools (section 11).
 - **The rack is dynamic** (24 November 2026, the owner's): a new track starts as MACROS, MIDI FX, SOUND, FX and
@@ -1421,20 +1427,22 @@ Decided:
   steps through the views at the chain (sections 6.7, 6.9).
 - **The map row is switched on and off, and takes a row of pads while it is on** (24 November 2026, the owner's).
 
+- **The arp's main page** (24 November 2026): PATTERN, RANGE, OCT DIST, MODE, RATE, GATE, SWING, QUANT
+  (section 7.6).
+- **What rides a track's belt** (24 November 2026): the rack's name, MACROS, PADS, SEQ, the MIDI effects, the
+  sound, the audio effects, MIX (section 6).
+- **The belt everywhere it was proposed** (24 November 2026): pad layouts, track types, adding a device, Tools and
+  views, beside the chain and Session Mode's wheel (section 3.5).
+
 Open. Each has a recommendation in the text above.
 
-1. **A quicker way to the TRIG page.** Decided: a held step locks the page that is showing, and a wheel press with
-   the step held shows TRIG. With no step held, TRIG is the first page of SEQ, which is a turn and a press from
-   anywhere on the chain. The owner asked for trig pages without menu diving; whether these two are quick enough,
-   or TRIG wants a button of its own, is to be talked through.
-2. **The arp's main page.** A new knob order is proposed in section 7.6, with SWING in the empty place. It waits
-   for the owner's yes.
-3. **Shift + Play means two things.** It stops every clip in Session Mode and retriggers in Note Mode. If one
-   meaning everywhere is wanted, retrigger is the one to give up or move.
-4. **What stays on a track's belt.** The owner's dynamic rack names MACROS, MIDI FX, SOUND and FX. This draft keeps
-   the rack's name, PADS, SEQ and MIX on the belt as well. Whether they belong there or somewhere else is open.
-5. **Where else the belt goes.** Decided for the chain and for Session Mode's wheel. Proposed for pad layouts,
-   track types, adding a device, Tools and views (section 3.5), which have no machine to run into yet.
+1. **Step + wheel press, to TRIG and back.** The owner's suggestion, written into section 7.2: with a step held,
+   a wheel press shows TRIG; it stays when the step is let go; a step held and the wheel pressed again returns to
+   the page it came from. The part to confirm is that TRIG stays after the step is let go. The other reading is
+   that it lasts only while the step is held, and the second press goes back early.
+2. **Stop all clips.** The owner suggested Shift + one of the stop steps. Shift + every step is already a function
+   with a printed icon (section 11), in Session Mode too, so that gesture is taken. Proposed in its place: a double
+   click on any stop step. An empty scene still stops everything.
 
 ## 15. What RemoteFM1 and Melodee teach
 

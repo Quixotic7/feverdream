@@ -1008,7 +1008,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -2465,7 +2465,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -3677,7 +3677,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -4915,7 +4915,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -6206,7 +6206,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -7385,7 +7385,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -8692,7 +8692,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -10191,7 +10191,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -11426,7 +11426,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
@@ -12632,7 +12632,7 @@
      "meta": {
       "label": "Play",
       "click": "Start / stop [M]",
-      "shift": "Note Mode: retrigger [M]. Session Mode: stop every clip"
+      "shift": "Retrigger [M]"
      },
      "led": {
       "color": "#00e050"
