@@ -1,4 +1,4 @@
-# Feverdream
+# Fever Dream
 
 A standalone groovebox for Ableton Move: eight tracks of synths, samplers, kits, MIDI, effect buses and audio loops,
 played the way Move is played. It runs in place of Move's own software.
